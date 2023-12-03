@@ -4,7 +4,8 @@ function adjustImageHeight() {
     let allImagesBelowThreshold = true;
 
     images.forEach(img => {
-        if (img.naturalHeight >= 3000) {
+		let ratio = img.naturalHeight / img.naturalWidth;
+        if (ratio > 2.5) {
             allImagesBelowThreshold = false;
         }
     });
