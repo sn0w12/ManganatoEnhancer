@@ -11,7 +11,8 @@
         {
             "matches": [
                 "https://manganato.com/*",
-                "https://chapmanganato.com/*"
+                "https://chapmanganato.com/*",
+				"https://chapmanganato.to/*"
             ],
             "js": [
                 "content.js"
