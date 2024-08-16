@@ -11,7 +11,7 @@ function adjustImageHeight() {
     });
 
     if (allImagesBelowThreshold) {
-        images.forEach(img => img.style.height = '1003px');
+        images.forEach(img => img.style.height = '100vh');
     }
 	else {
 		images.forEach(img => img.style.width = '450px');
