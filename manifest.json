@@ -1,22 +1,28 @@
 {
-    "manifest_version": 2,
-    "name": "Image Height Adjuster for Manganato",
-    "description": "Adjusts the height of manga images to 1003px on specified websites if conditions are met.",
+    "manifest_version": 3,
+    "name": "Manganato Enhancer",
+    "description": "Enhances the user experience on manganato.",
     "version": "1.0",
     "permissions": [
-        "activeTab",
-        "declarativeContent"
+      "activeTab",
+      "declarativeContent",
+      "storage"
+    ],
+    "host_permissions": [
+      "https://manganato.com/*",
+      "https://chapmanganato.com/*",
+      "https://chapmanganato.to/*"
     ],
     "content_scripts": [
-        {
-            "matches": [
-                "https://manganato.com/*",
-                "https://chapmanganato.com/*",
-				"https://chapmanganato.to/*"
-            ],
-            "js": [
-                "content.js"
-            ]
-        }
+      {
+        "matches": [
+          "https://manganato.com/*",
+          "https://chapmanganato.com/*",
+          "https://chapmanganato.to/*"
+        ],
+        "js": [
+          "dist/content.js"
+        ]
+      }
     ]
-}
+  }
