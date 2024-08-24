@@ -32,7 +32,6 @@ jobs:
           mkdir -p manganato-enhancer
           cp -r dist manganato-enhancer/
           cp manifest.json manganato-enhancer/
-          cp -r icons manganato-enhancer/  # Include icons or any other assets
           cd manganato-enhancer && zip -r ../manganato-enhancer.zip *
 
       - name: Extract tag name
