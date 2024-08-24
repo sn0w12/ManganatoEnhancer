@@ -1,39 +1,67 @@
-function log(text: string, category: string = "", type: string = "info") {
-    const prefix = "Manganato";
-    const generalCss = 'color: white; padding: 2px 6px; '
-    let customCSS = generalCss + ' border-radius: 3px;';
+type LogType = "error" | "warning" | "success" | "info";
+type categoryType = "img" | "info" | "";
 
-    switch (type) {
-        case "error":
-            customCSS += " background-color: #f15e55;"
-            break;
-        case "warning":
-            customCSS += " background-color: #ff5417;"
-            break;
-        case "success":
-            customCSS += " background-color: #1c8a52;"
-            break;
-        default:
-            customCSS += " background-color: #7dc4ca;"
-            break;
+class Logger {
+    private prefix: string;
+    private typeColorMap: { [key in LogType]: string } = {
+        error: " background-color: #f15e55;",
+        warning: " background-color: #ff5417;",
+        success: " background-color: #1c8a52;",
+        info: " background-color: #7dc4ca;",
+    };
+    private categoryColorMap: { [key in categoryType]: string } = {
+        img: " background-color: #f15e55;",
+        info: " background-color: #bc7690;",
+        "": "",
     }
-    if (category == "") {
-        console.log(`%c${prefix}`, customCSS, text);
-    } else {
-        let categoryCSS = generalCss + ' border-radius: 0 3px 3px 0; margin-left: -5px;';
-        switch (category) {
-            case "img":
-                categoryCSS += " background-color: #f15e55;"
-                break;
-            default:
-                categoryCSS += " background-color: #bc7690;"
-                break;
+
+    constructor(prefix: string) {
+        this.prefix = prefix;
+    }
+
+    static getLuminance(hexColor: string): number {
+        // Convert hex to RGB
+        const rgb = parseInt(hexColor.slice(1), 16); // Remove "#" and convert to integer
+        const r = (rgb >> 16) & 0xff;
+        const g = (rgb >> 8) & 0xff;
+        const b = (rgb >> 0) & 0xff;
+
+        // Convert RGB to relative luminance
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        return luminance;
+    }
+
+    // Function to choose black or white text color based on luminance
+    static getTextColorBasedOnBg(bgColor: string): string {
+        const luminance = Logger.getLuminance(bgColor);
+        return luminance > 0.5 ? '#000000' : '#FFFFFF'; // Black text for bright bg, white text for dark bg
+    }
+
+    log(message: string, category: categoryType = "", type: LogType = "info", detailMessage: string = "") {
+        const generalCss = 'color: white; padding: 2px 6px; '
+        const typeColor = this.typeColorMap[type];
+        const typeTextColor = Logger.getTextColorBasedOnBg(typeColor)
+        let customCSS = generalCss + typeColor + ` color: ${typeTextColor}; border-radius: 3px;`;
+
+        let logMessage = [`%c${this.prefix}`, `${customCSS} ${typeColor}`, message]
+        if (category != "") {
+            const categoryColor = this.categoryColorMap[category];
+            const categoryTextColor = Logger.getTextColorBasedOnBg(categoryColor)
+
+            const categoryCSS = `${categoryColor} color: ${categoryTextColor}; border-radius: 0 3px 3px 0; margin-left: -5px;`
+            logMessage = [`%c${this.prefix}%c${category}`, `${customCSS.replace("6px", "10px")} ${typeColor}`, `${generalCss} ${categoryCSS}`, message]
         }
 
-        customCSS += " padding-right: 10px;";
-        console.log(`%c${prefix[0]}%c${category}`, customCSS, categoryCSS, text);
+        console.groupCollapsed(...logMessage);
+        if (detailMessage != "") {
+            console.log(detailMessage);
+        }
+        console.trace();
+        console.groupEnd();
     }
 }
+
+const logger = new Logger("Manganato");
 
 function adjustImageHeight() {
     const images = document.querySelectorAll<HTMLImageElement>('.container-chapter-reader img');
@@ -85,11 +113,11 @@ function addScrollButtons() {
     // Get all images
     const pageDiv = document.querySelector(".container-chapter-reader");
     if (!pageDiv) {
-        log("Not on manga page.")
+        logger.log("Not on manga page.")
         return;
     }
     const images = pageDiv.querySelectorAll('img');
-    log(`Total images: ${images.length}`, "img");
+    logger.log(`Total images: ${images.length}`, "img");
 
     const navigationPanel = document.querySelectorAll(".panel-navigation")[1]
 
@@ -111,7 +139,7 @@ function addScrollButtons() {
         // If the navigation panel is in view, set closestImageIndex to the last image
         if (isNavigationPanelInView) {
             closestImageIndex = images.length;
-            log(`Outside of reader.`, "info");
+            logger.log(`Outside of reader.`, "info");
             return;
         }
 
@@ -123,7 +151,7 @@ function addScrollButtons() {
             }
         });
 
-        log(`Closest image index: ${closestImageIndex}`, "img");
+        logger.log(`Closest image index: ${closestImageIndex}`, "img");
     }
 
     // Find the closest image when the script runs
