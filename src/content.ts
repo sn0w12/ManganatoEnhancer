@@ -38,7 +38,7 @@ class Logger {
     }
 
     log(message: string, category: categoryType = "", type: LogType = "info", detailMessage: string = "") {
-        const generalCss = 'color: white; padding: 2px 6px; '
+        const generalCss = 'color: white; padding: 2px 6px 2px 6px; '
         const typeColor = this.typeColorMap[type];
         const typeTextColor = Logger.getTextColorBasedOnBg(typeColor)
         let customCSS = generalCss + typeColor + ` color: ${typeTextColor}; border-radius: 3px;`;
@@ -49,7 +49,7 @@ class Logger {
             const categoryTextColor = Logger.getTextColorBasedOnBg(categoryColor)
 
             const categoryCSS = `${categoryColor} color: ${categoryTextColor}; border-radius: 0 3px 3px 0; margin-left: -5px;`
-            logMessage = [`%c${this.prefix}%c${category}`, `${customCSS.replace("6px", "10px")} ${typeColor}`, `${generalCss} ${categoryCSS}`, message]
+            logMessage = [`%c${this.prefix}%c${category}`, `${customCSS.replace("6px", "10px")} ${typeColor}`, `${generalCss}${categoryCSS}`, message]
         }
 
         console.groupCollapsed(...logMessage);
@@ -61,142 +61,149 @@ class Logger {
     }
 }
 
-const logger = new Logger("Manganato");
+class MangaNato {
+    private logger = new Logger("Manganato");
 
-function adjustImageHeight() {
-    const images = document.querySelectorAll<HTMLImageElement>('.container-chapter-reader img');
-    let allImagesBelowThreshold = true;
-
-    images.forEach(img => {
-		let ratio = img.naturalHeight / img.naturalWidth;
-        if (ratio > 2.5) {
-            allImagesBelowThreshold = false;
-        }
-    });
-
-    if (allImagesBelowThreshold) {
-        images.forEach(img => img.style.height = '100vh');
-    }
-	else {
-		images.forEach(img => img.style.width = '450px');
-	}
-}
-
-function fixStyles() {
-    const topDiv = document.querySelector<HTMLDivElement>(".silder-title");
-    if (topDiv) {
-        topDiv.style.width = "100%";
+    constructor() {
+        this.adjustImageHeight();
+        this.removeAdDivs();
+        this.fixStyles();
+        this.addScrollButtons();
     }
 
-    const panelDiv = document.querySelector<HTMLDivElement>(".panel-topview-title");
-    if (panelDiv) {
-        panelDiv.style.width = "100%";
-    }
+    adjustImageHeight() {
+        const images = document.querySelectorAll<HTMLImageElement>('.container-chapter-reader img');
+        let allImagesBelowThreshold = true;
 
-    const categoryDiv = document.querySelector<HTMLDivElement>(".pn-category-story-title");
-    if (categoryDiv) {
-        categoryDiv.style.width = "100%";
-    }
-}
-
-function removeAdDivs() {
-    const targetDivs = document.querySelectorAll('div[style*="text-align: center;"][style*="max-width: 620px;"]');
-    targetDivs.forEach(div => {
-        div.remove();
-    })
-}
-
-function addScrollButtons() {
-    let closestImageIndex = -1; // Keeps track of the current image index
-    let scrollTimeout: number;
-
-    // Get all images
-    const pageDiv = document.querySelector(".container-chapter-reader");
-    if (!pageDiv) {
-        logger.log("Not on manga page.")
-        return;
-    }
-    const images = pageDiv.querySelectorAll('img');
-    logger.log(`Total images: ${images.length}`, "img");
-
-    const navigationPanel = document.querySelectorAll(".panel-navigation")[1]
-
-    // Function to scroll to a specific image
-    function scrollToImage(index: number, position: 'start' | 'center' | 'end' | 'nearest') {
-        if (index >= 0 && index < images.length) {
-            images[index].scrollIntoView({ behavior: 'smooth', block: position });
-            closestImageIndex = index; // Update the current image index
-        }
-    }
-
-    // Function to find the closest image initially
-    function findClosestImage() {
-        const maxDistance = 100;
-        let closestDistance = Infinity;
-        const navigationPanelRect = navigationPanel.getBoundingClientRect();
-        const isNavigationPanelInView = navigationPanelRect.top < window.innerHeight && navigationPanelRect.bottom > 0;
-
-        // If the navigation panel is in view, set closestImageIndex to the last image
-        if (isNavigationPanelInView) {
-            closestImageIndex = images.length;
-            logger.log(`Outside of reader.`, "info");
-            return;
-        }
-
-        images.forEach((img, index) => {
-            const distance = Math.abs(img.getBoundingClientRect().top);
-            if (distance < closestDistance && distance < maxDistance) {
-                closestDistance = distance;
-                closestImageIndex = index;
+        images.forEach(img => {
+            let ratio = img.naturalHeight / img.naturalWidth;
+            if (ratio > 2.5) {
+                allImagesBelowThreshold = false;
             }
         });
 
-        logger.log(`Closest image index: ${closestImageIndex}`, "img");
+        if (allImagesBelowThreshold) {
+            images.forEach(img => img.style.height = '100vh');
+        }
+        else {
+            images.forEach(img => img.style.width = '450px');
+        }
     }
 
-    // Find the closest image when the script runs
-    findClosestImage();
+    fixStyles() {
+        const topDiv = document.querySelector<HTMLDivElement>(".silder-title");
+        if (topDiv) {
+            topDiv.style.width = "100%";
+            topDiv.style.height = "100%"
+        }
 
-    // Event listener for key presses
-    window.addEventListener('keydown', (event) => {
-        // If at top of page scroll to first image.
-        if (window.scrollY <= 100) {
+        const panelDiv = document.querySelector<HTMLDivElement>(".panel-topview-title");
+        if (panelDiv) {
+            panelDiv.style.width = "100%";
+        }
+
+        const categoryDiv = document.querySelector<HTMLDivElement>(".pn-category-story-title");
+        if (categoryDiv) {
+            categoryDiv.style.width = "100%";
+        }
+    }
+
+    removeAdDivs() {
+        const targetDivs = document.querySelectorAll('div[style*="text-align: center;"][style*="max-width: 620px;"]');
+        targetDivs.forEach(div => {
+            div.remove();
+        })
+    }
+
+    addScrollButtons() {
+        let closestImageIndex = -1; // Keeps track of the current image index
+        let scrollTimeout: number;
+        const logger = this.logger;
+
+        // Get all images
+        const pageDiv = document.querySelector(".container-chapter-reader");
+        if (!pageDiv) {
+            logger.log("Not on manga page.")
+            return;
+        }
+        const images = pageDiv.querySelectorAll('img');
+        logger.log(`Total images: ${images.length}`, "img");
+
+        const navigationPanel = document.querySelectorAll(".panel-navigation")[1]
+
+        // Function to scroll to a specific image
+        function scrollToImage(index: number, position: 'start' | 'center' | 'end' | 'nearest') {
+            if (index >= 0 && index < images.length) {
+                images[index].scrollIntoView({ behavior: 'smooth', block: position });
+                closestImageIndex = index; // Update the current image index
+            }
+        }
+
+        // Function to find the closest image initially
+        function findClosestImage() {
+            const maxDistance = 100;
+            let closestDistance = Infinity;
+            const navigationPanelRect = navigationPanel.getBoundingClientRect();
+            const isNavigationPanelInView = navigationPanelRect.top < window.innerHeight && navigationPanelRect.bottom > 0;
+
+            // If the navigation panel is in view, set closestImageIndex to the last image
+            if (isNavigationPanelInView) {
+                closestImageIndex = images.length;
+                logger.log(`Outside of reader.`, "info");
+                return;
+            }
+
+            images.forEach((img, index) => {
+                const distance = Math.abs(img.getBoundingClientRect().top);
+                if (distance < closestDistance && distance < maxDistance) {
+                    closestDistance = distance;
+                    closestImageIndex = index;
+                }
+            });
+
+            logger.log(`Closest image index: ${closestImageIndex}`, "img");
+        }
+
+        // Find the closest image when the script runs
+        findClosestImage();
+
+        // Event listener for key presses
+        window.addEventListener('keydown', (event) => {
+            // If at top of page scroll to first image.
+            if (window.scrollY <= 100) {
+                if (event.key === 'ArrowRight') {
+                    scrollToImage(0, 'start');
+                    return; // Exit the function to prevent further execution
+                }
+            }
+
             if (event.key === 'ArrowRight') {
-                scrollToImage(0, 'start');
-                return; // Exit the function to prevent further execution
+                // Scroll to the next image (bottom)
+                if (closestImageIndex < images.length - 1) {
+                    scrollToImage(closestImageIndex + 1, 'end');
+                } else if (closestImageIndex == images.length - 1) {
+                    navigationPanel.scrollIntoView({ behavior: 'smooth', block: "end" });
+                }
+            } else if (event.key === 'ArrowLeft') {
+                // Scroll to the previous image (top)
+                if (closestImageIndex > 0) {
+                    scrollToImage(closestImageIndex - 1, 'start');
+                } else if (closestImageIndex == 0) {
+                    scrollToImage(closestImageIndex, 'start');
+                }
             }
+        });
+
+        function onScrollStop() {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                findClosestImage(); // Update closest image after scrolling has stopped
+            }, 50);
         }
 
-        if (event.key === 'ArrowRight') {
-            // Scroll to the next image (bottom)
-            if (closestImageIndex < images.length - 1) {
-                scrollToImage(closestImageIndex + 1, 'end');
-            } else if (closestImageIndex == images.length - 1) {
-                navigationPanel.scrollIntoView({ behavior: 'smooth', block: "end" });
-            }
-        } else if (event.key === 'ArrowLeft') {
-            // Scroll to the previous image (top)
-            if (closestImageIndex > 0) {
-                scrollToImage(closestImageIndex - 1, 'start');
-            } else if (closestImageIndex == 0) {
-                scrollToImage(closestImageIndex, 'start');
-            }
-        }
-    });
-
-    function onScrollStop() {
-        clearTimeout(scrollTimeout);
-        scrollTimeout = setTimeout(() => {
-            findClosestImage(); // Update closest image after scrolling has stopped
-        }, 50);
+        // Reset closest image on scroll to re-evaluate when scrolling has stopped
+        window.addEventListener('scroll', onScrollStop);
     }
-
-    // Reset closest image on scroll to re-evaluate when scrolling has stopped
-    window.addEventListener('scroll', onScrollStop);
 }
 
-// Run the function to adjust the image height
-adjustImageHeight();
-removeAdDivs();
-fixStyles();
-addScrollButtons();
+const mangaNatoHandler = new MangaNato;
