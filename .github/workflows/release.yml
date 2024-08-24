@@ -28,13 +28,17 @@ jobs:
         run: npm run build # This runs your build command, ensure it's in your package.json
 
       - name: Package extension
-        run: zip -r chrome-extension.zip dist/* # Adjust this to your build output directory
+        run: zip -r manganato-enhancer.zip dist/* # Adjust this to your build output directory
+
+      - name: Extract tag name
+        id: extract_tag
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
         with:
           artifacts: manganato-enhancer.zip # The ZIP file created in the previous step
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.ref }} # The tag that triggered the workflow
-          name: Release ${{ github.ref }} # Name of the release
-          body: "Automated release of the Chrome extension." # Release description
+          tag: ${{ env.TAG_NAME }}
+          name: Release ${{ env.TAG_NAME }}
+          body: "Automated release of the Chrome extension."
