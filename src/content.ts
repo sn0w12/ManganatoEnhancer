@@ -37,7 +37,7 @@ class Logger {
         return luminance > 0.5 ? '#000000' : '#FFFFFF'; // Black text for bright bg, white text for dark bg
     }
 
-    log(message: string, category: categoryType = "", type: LogType = "info", detailMessage: string = "") {
+    log(message: any, category: categoryType = "", type: LogType = "info", detailMessage: string = "") {
         const generalCss = 'color: white; padding: 2px 6px 2px 6px; '
         const typeColor = this.typeColorMap[type];
         const typeTextColor = Logger.getTextColorBasedOnBg(typeColor)
@@ -189,11 +189,30 @@ class MangaNato {
                 return;
             }
 
+            if ((keysPressed['Control'] || keysPressed['Meta']) && keysPressed['ArrowRight']) {
+                const nextChapterButton = navigationPanel.querySelector<HTMLButtonElement>(".navi-change-chapter-btn-next");
+                if (nextChapterButton) {
+                    nextChapterButton.click();
+                } else {
+                    this.logger.log("No Next Chapter", "info", "error");
+                }
+                return;
+            }
+            if ((keysPressed['Control'] || keysPressed['Meta']) && keysPressed['ArrowLeft']) {
+                const lastChapterButton = navigationPanel.querySelector<HTMLButtonElement>(".navi-change-chapter-btn-prev");
+                if (lastChapterButton) {
+                    lastChapterButton.click();
+                } else {
+                    this.logger.log("No Previous Chapter", "info", "error");
+                }
+                return;
+            }
+
             // If at top of page scroll to first image.
             if (window.scrollY <= 100) {
                 if (event.key === 'ArrowRight') {
                     scrollToImage(0, 'start');
-                    return; // Exit the function to prevent further execution
+                    return;
                 }
             }
 

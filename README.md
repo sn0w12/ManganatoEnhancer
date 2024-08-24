@@ -8,10 +8,12 @@ A simple chrome extension made to improve the manganato experience. Contains vis
 
 | Key      | Function |
 | ----------- | ----------- |
-| >   | Next page |
-| <     | Previous page |
-| Shift + >   | Last page |
-| Shift + <     | First page |
+| >   | Next Page |
+| <     | Previous Page |
+| Shift + >   | Last Page |
+| Shift + <     | First Page |
+| Ctrl + >   | Next Chapter |
+| Ctrl + <     | Previous Chapter |
 
 # Installation
 
