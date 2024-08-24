@@ -3,35 +3,38 @@ name: Build and Release Chrome Extension
 on:
   push:
     tags:
-      - 'v*'  # This triggers the workflow on version tags like v1.0, v1.1, etc.
+      - "v*" # This triggers the workflow on version tags like v1.0, v1.1, etc.
+
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'  # Use the Node.js version your project requires
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18" # Use the Node.js version your project requires
 
-    - name: Install dependencies
-      run: npm install
+      - name: Install dependencies
+        run: npm install
 
-    - name: Build extension
-      run: npm run build  # This runs your build command, ensure it's in your package.json
+      - name: Build extension
+        run: npm run build # This runs your build command, ensure it's in your package.json
 
-    - name: Package extension
-      run: zip -r chrome-extension.zip dist/*  # Adjust this to your build output directory
+      - name: Package extension
+        run: zip -r chrome-extension.zip dist/* # Adjust this to your build output directory
 
-    - name: Create GitHub Release
-      uses: ncipollo/release-action@v1
-      with:
-        artifacts: manganato-enhancer.zip  # The ZIP file created in the previous step
-        token: ${{ secrets.GITHUB_TOKEN }}
-        tag: ${{ github.ref }}  # The tag that triggered the workflow
-        name: Release ${{ github.ref }}  # Name of the release
-        body: "Automated release of the Chrome extension."  # Release description
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: manganato-enhancer.zip # The ZIP file created in the previous step
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }} # The tag that triggered the workflow
+          name: Release ${{ github.ref }} # Name of the release
+          body: "Automated release of the Chrome extension." # Release description
