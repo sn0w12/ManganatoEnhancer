@@ -167,8 +167,28 @@ class MangaNato {
         // Find the closest image when the script runs
         findClosestImage();
 
+        let keysPressed: { [key: string]: boolean } = {};
+
+        window.addEventListener('keyup', (event) => {
+            delete keysPressed[event.key]; // Remove the key from the pressed keys list
+        });
+
         // Event listener for key presses
         window.addEventListener('keydown', (event) => {
+            keysPressed[event.key] = true;
+
+            // Key combinations
+            if (keysPressed['Shift'] && keysPressed['ArrowRight']) {
+                navigationPanel.scrollIntoView({ behavior: 'smooth', block: "end" });
+                findClosestImage();
+                return;
+            }
+            if (keysPressed['Shift'] && keysPressed['ArrowLeft']) {
+                scrollToImage(0, 'start');
+                findClosestImage();
+                return;
+            }
+
             // If at top of page scroll to first image.
             if (window.scrollY <= 100) {
                 if (event.key === 'ArrowRight') {
