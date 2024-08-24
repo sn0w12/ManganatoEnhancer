@@ -1,0 +1,16 @@
+{
+  "name": "manganato",
+  "version": "1.0.0",
+  "description": "",
+  "main": "content.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/chrome": "^0.0.270",
+    "typescript": "^5.5.4"
+  }
+}
