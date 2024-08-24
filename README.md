@@ -18,7 +18,7 @@ A simple chrome extension made to improve the manganato experience. Contains vis
 1. Download the Extension:
     * Download `manganato-enhancer.zip` from the latest [release](https://github.com/sn0w12/Manganato/releases/latest)
     * Or clone it with `Git clone https://github.com/sn0w12/Manganato`
-      * If you cloned it install it with `npm run build`
+      * If you cloned it, build it with `npm run build`
 
 2. Extract Files:
     * If you downloaded a zip file, extract it to a convenient location.
