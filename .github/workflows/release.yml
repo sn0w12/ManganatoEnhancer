@@ -27,8 +27,13 @@ jobs:
       - name: Build extension
         run: npm run build # This runs your build command, ensure it's in your package.json
 
-      - name: Package extension
-        run: zip -r manganato-enhancer.zip dist/* # Adjust this to your build output directory
+      - name: Prepare extension package
+        run: |
+          mkdir -p manganato-enhancer
+          cp -r dist manganato-enhancer/
+          cp manifest.json manganato-enhancer/
+          cp -r icons manganato-enhancer/  # Include icons or any other assets
+          cd manganato-enhancer && zip -r ../manganato-enhancer.zip *
 
       - name: Extract tag name
         id: extract_tag
