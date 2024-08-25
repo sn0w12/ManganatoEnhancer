@@ -158,7 +158,7 @@ class MangaNato {
         this.adjustImageHeight();
         this.removeAdDivs();
         this.fixStyles();
-        this.addScrollButtons();
+        this.addMangaButtons();
         this.addGeneralShortcuts();
     }
 
@@ -285,7 +285,7 @@ class MangaNato {
         });
     }
 
-    addScrollButtons() {
+    addMangaButtons() {
         let closestImageIndex = -1; // Keeps track of the current image index
         let scrollTimeout: number;
         const logger = this.logger;
@@ -404,10 +404,13 @@ class MangaNato {
                         action: "openPageAndPressButton",
                         url: url
                     }, (response) => {
-                        if (response?.success) {
+                        console.log(response?.success)
+                        if (response?.success === 1) {
                             this.logger.popup("Bookmarked!", "success");
+                        } else if (response?.success === 2) {
+                            this.logger.popup("Already Bookmarked.", "info");
                         } else {
-                            this.logger.popup("Failed to bookmark.", "error");
+                            this.logger.popup("Failed to Bookmark.", "error");
                         }
                     });
                 } else {
