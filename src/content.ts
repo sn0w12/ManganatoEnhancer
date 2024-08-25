@@ -238,7 +238,9 @@ class MangaNato {
                 const chapters = document.querySelectorAll<HTMLAnchorElement>(".chapter-name");
                 if (chapters) {
                     const firstChapter = chapters[chapters.length - 1]
-                    firstChapter.click();
+                    if (firstChapter) {
+                        firstChapter.click();
+                    }
                 }
                 return;
             }
@@ -393,6 +395,27 @@ class MangaNato {
                 this.logger.popup("No other server found.", "warning")
                 return;
             }
+            if ((keysPressed['Control'] || keysPressed['Meta']) && keysPressed['Enter']) {
+                const mangaUrl = document.querySelectorAll<HTMLAnchorElement>(".a-h");
+                const url = mangaUrl[7]?.getAttribute("href");
+
+                if (url) {
+                    chrome.runtime.sendMessage({
+                        action: "openPageAndPressButton",
+                        url: url
+                    }, (response) => {
+                        if (response?.success) {
+                            this.logger.popup("Bookmarked!", "success");
+                        } else {
+                            this.logger.popup("Failed to bookmark.", "error");
+                        }
+                    });
+                } else {
+                    this.logger.popup("No valid URL found.", "warning");
+                }
+
+                return;
+              }
 
             // If at top of page scroll to first image.
             if (window.scrollY <= 100) {

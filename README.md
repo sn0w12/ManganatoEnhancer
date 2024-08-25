@@ -31,6 +31,7 @@ Works while reading a chapter.
 | Ctrl + >   | Next Chapter |
 | Ctrl + <     | Previous Chapter |
 | Ctrl + i     | Change Image Server |
+| Ctrl + Enter     | Bookmark Manga |
 
 ## Bookmark Shortcuts
 

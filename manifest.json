@@ -3,16 +3,15 @@
     "name": "Manganato Enhancer",
     "description": "Enhances the user experience on manganato.",
     "version": "0.0.5",
-    "permissions": [
-      "activeTab",
-      "declarativeContent",
-      "storage"
-    ],
+    "permissions": ["tabs", "activeTab", "scripting"],
     "host_permissions": [
       "https://manganato.com/*",
       "https://chapmanganato.com/*",
       "https://chapmanganato.to/*"
     ],
+    "background": {
+      "service_worker": "dist/background.js"
+    },
     "content_scripts": [
       {
         "matches": [
