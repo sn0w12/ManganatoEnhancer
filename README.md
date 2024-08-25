@@ -32,9 +32,9 @@ Works while reading a chapter.
 | Ctrl + <     | Previous Chapter |
 | Ctrl + i     | Change Image Server |
 
-## Bookmarks Shortcuts
+## Bookmark Shortcuts
 
-Works while in booksmarks.
+Works while in bookmarks.
 | Key      | Function |
 | ----------- | ----------- |
 | Ctrl + Right Arrow   | Next Page |
