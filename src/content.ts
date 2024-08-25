@@ -52,6 +52,11 @@ class Logger {
             logMessage = [`%c${this.prefix}%c${category}`, `${customCSS.replace("6px", "10px")} ${typeColor}`, `${generalCss}${categoryCSS}`, message]
         }
 
+        if (type == "error") {
+            console.error(...logMessage);
+            return;
+        }
+
         console.groupCollapsed(...logMessage);
         if (detailMessage != "") {
             console.log(detailMessage);
@@ -168,6 +173,8 @@ class MangaNato {
         findClosestImage();
 
         let keysPressed: { [key: string]: boolean } = {};
+        const rightKeys = ["ArrowRight", "d"];
+        const leftKeys = ["ArrowLeft", "a"];
 
         window.addEventListener('keyup', (event) => {
             delete keysPressed[event.key]; // Remove the key from the pressed keys list
@@ -178,18 +185,18 @@ class MangaNato {
             keysPressed[event.key] = true;
 
             // Key combinations
-            if (keysPressed['Shift'] && keysPressed['ArrowRight']) {
+            if (keysPressed['Shift'] && rightKeys.includes(event.key)) {
                 navigationPanel.scrollIntoView({ behavior: 'smooth', block: "end" });
                 findClosestImage();
                 return;
             }
-            if (keysPressed['Shift'] && keysPressed['ArrowLeft']) {
+            if (keysPressed['Shift'] && leftKeys.includes(event.key)) {
                 scrollToImage(0, 'start');
                 findClosestImage();
                 return;
             }
 
-            if ((keysPressed['Control'] || keysPressed['Meta']) && keysPressed['ArrowRight']) {
+            if ((keysPressed['Control'] || keysPressed['Meta']) && rightKeys.includes(event.key)) {
                 const nextChapterButton = navigationPanel.querySelector<HTMLButtonElement>(".navi-change-chapter-btn-next");
                 if (nextChapterButton) {
                     nextChapterButton.click();
@@ -198,7 +205,7 @@ class MangaNato {
                 }
                 return;
             }
-            if ((keysPressed['Control'] || keysPressed['Meta']) && keysPressed['ArrowLeft']) {
+            if ((keysPressed['Control'] || keysPressed['Meta']) && leftKeys.includes(event.key)) {
                 const lastChapterButton = navigationPanel.querySelector<HTMLButtonElement>(".navi-change-chapter-btn-prev");
                 if (lastChapterButton) {
                     lastChapterButton.click();
@@ -210,20 +217,20 @@ class MangaNato {
 
             // If at top of page scroll to first image.
             if (window.scrollY <= 100) {
-                if (event.key === 'ArrowRight') {
+                if (rightKeys.includes(event.key)) {
                     scrollToImage(0, 'start');
                     return;
                 }
             }
 
-            if (event.key === 'ArrowRight') {
+            if (rightKeys.includes(event.key)) {
                 // Scroll to the next image (bottom)
                 if (closestImageIndex < images.length - 1) {
                     scrollToImage(closestImageIndex + 1, 'end');
                 } else if (closestImageIndex == images.length - 1) {
                     navigationPanel.scrollIntoView({ behavior: 'smooth', block: "end" });
                 }
-            } else if (event.key === 'ArrowLeft') {
+            } else if (leftKeys.includes(event.key)) {
                 // Scroll to the previous image (top)
                 if (closestImageIndex > 0) {
                     scrollToImage(closestImageIndex - 1, 'start');
