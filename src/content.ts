@@ -214,6 +214,17 @@ class MangaNato {
                 }
                 return;
             }
+            if ((keysPressed['Control'] || keysPressed['Meta']) && keysPressed['i']) {
+                const serverButtons = document.querySelectorAll<HTMLElement>(".server-image-btn");
+                serverButtons.forEach(serverButton => {
+                    const dataL = serverButton.getAttribute("data-l"); // Get the value of the data-l attribute
+                    if (dataL) {
+                        serverButton.click();
+                        return;
+                    }
+                })
+                return;
+            }
 
             // If at top of page scroll to first image.
             if (window.scrollY <= 100) {

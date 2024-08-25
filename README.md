@@ -14,6 +14,7 @@ A simple chrome extension made to improve the manganato experience. Contains vis
 | Shift + <     | First Page |
 | Ctrl + >   | Next Chapter |
 | Ctrl + <     | Previous Chapter |
+| Ctrl + i     | Change Image Server |
 
 # Installation
 
