@@ -9,6 +9,19 @@ A simple chrome extension made to improve the manganato experience. Contains vis
 - `>`: **Right Arrow** | **"D"**.
 - `<`: **Left Arrow** | **"A"**.
 
+## General Shortcuts
+
+Works on all pages.
+
+| Key      | Function |
+| ----------- | ----------- |
+| Ctrl + b     | Go To Bookmarks |
+| Ctrl + m     | Go To Home |
+
+## Manga Shortcuts
+
+Works while reading a chapter.
+
 | Key      | Function |
 | ----------- | ----------- |
 | >   | Next Page |
@@ -18,6 +31,16 @@ A simple chrome extension made to improve the manganato experience. Contains vis
 | Ctrl + >   | Next Chapter |
 | Ctrl + <     | Previous Chapter |
 | Ctrl + i     | Change Image Server |
+
+## Bookmarks Shortcuts
+
+Works while in booksmarks.
+| Key      | Function |
+| ----------- | ----------- |
+| Ctrl + Right Arrow   | Next Page |
+| Ctrl + Left Arrow   | Previous Page |
+| Ctrl + Shift + Right Arrow   | Last Page |
+| Ctrl + Shift + Left Arrow   | First Page |
 
 # Installation
 

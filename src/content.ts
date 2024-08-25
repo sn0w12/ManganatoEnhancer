@@ -140,6 +140,7 @@ class MangaNato {
         this.removeAdDivs();
         this.fixStyles();
         this.addScrollButtons();
+        this.addGeneralShortcuts();
     }
 
     adjustImageHeight() {
@@ -184,6 +185,75 @@ class MangaNato {
         targetDivs.forEach(div => {
             div.remove();
         })
+    }
+
+    addGeneralShortcuts() {
+        let keysPressed: { [key: string]: boolean } = {};
+
+        function getLastPage() {
+            const lastPageElement = document.querySelector<HTMLAnchorElement>(".go-p-end");
+            if (lastPageElement != null && lastPageElement.textContent) {
+                return parseInt(lastPageElement.textContent.substring(5).slice(0, -1));
+            }
+            return 0;
+        }
+
+        window.addEventListener('keyup', (event) => {
+            delete keysPressed[event.key]; // Remove the key from the pressed keys list
+        });
+
+        window.addEventListener('keydown', (event) => {
+            keysPressed[event.key] = true;
+
+            if ((keysPressed['Control'] || keysPressed['Meta']) && event.key == "b") {
+                window.location.href = "https://manganato.com/bookmark";
+                return;
+            }
+
+            if ((keysPressed['Control'] || keysPressed['Meta']) && event.key == "m") {
+                window.location.href = "https://manganato.com/";
+                return;
+            }
+
+            if (window.location.href.includes("bookmark")) {
+                if ((keysPressed['Control'] || keysPressed['Meta']) && event.key == "ArrowRight") {
+                    const lastPage = getLastPage();
+                    if (keysPressed['Shift']) {
+                        window.location.href = `https://manganato.com/bookmark?page=${lastPage}`;
+                        return;
+                    }
+
+                    let currentPage = 1;
+                    if (window.location.href.includes("page")) {
+                        const hrefPath = window.location.href.split("/");
+                        currentPage = parseInt(hrefPath[hrefPath.length - 1].split("?")[1].substring(5));
+                    }
+                    if (currentPage < lastPage) {
+                        window.location.href = `https://manganato.com/bookmark?page=${currentPage + 1}`;
+                        return;
+                    }
+                    this.logger.popup("Already on Last Page", "warning");
+                }
+
+                if ((keysPressed['Control'] || keysPressed['Meta']) && event.key == "ArrowLeft") {
+                    if (keysPressed['Shift']) {
+                        window.location.href = `https://manganato.com/bookmark`;
+                        return;
+                    }
+
+                    let currentPage = 1;
+                    if (window.location.href.includes("page")) {
+                        const hrefPath = window.location.href.split("/");
+                        currentPage = parseInt(hrefPath[hrefPath.length - 1].split("?")[1].substring(5));
+                    }
+                    if (currentPage > 1) {
+                        window.location.href = `https://manganato.com/bookmark?page=${currentPage - 1}`;
+                        return;
+                    }
+                    this.logger.popup("Already on First Page", "warning");
+                }
+            }
+        });
     }
 
     addScrollButtons() {
