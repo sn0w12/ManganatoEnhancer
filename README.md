@@ -36,12 +36,21 @@ Works while reading a chapter.
 ## Bookmark Shortcuts
 
 Works while in bookmarks.
+
 | Key      | Function |
 | ----------- | ----------- |
 | Ctrl + Right Arrow   | Next Page |
 | Ctrl + Left Arrow   | Previous Page |
 | Ctrl + Shift + Right Arrow   | Last Page |
 | Ctrl + Shift + Left Arrow   | First Page |
+
+## Manga Page Shortcuts
+
+Works while on the main page of a manga.
+
+| Key      | Function |
+| ----------- | ----------- |
+| Ctrl + Enter   | Go to First Chapter |
 
 # Installation
 
