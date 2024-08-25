@@ -201,7 +201,7 @@ class MangaNato {
                 if (nextChapterButton) {
                     nextChapterButton.click();
                 } else {
-                    this.logger.log("No Next Chapter", "info", "error");
+                    this.logger.log("No Next Chapter", "info", "warning");
                 }
                 return;
             }
@@ -210,7 +210,7 @@ class MangaNato {
                 if (lastChapterButton) {
                     lastChapterButton.click();
                 } else {
-                    this.logger.log("No Previous Chapter", "info", "error");
+                    this.logger.log("No Previous Chapter", "info", "warning");
                 }
                 return;
             }
@@ -223,6 +223,7 @@ class MangaNato {
                         return;
                     }
                 })
+                this.logger.log("No other server found.", "info", "warning")
                 return;
             }
 
