@@ -6,6 +6,9 @@ A simple chrome extension made to improve the manganato experience. Contains vis
 
 # Shortcuts
 
+- `>`: **Right Arrow** | **"D"**.
+- `<`: **Left Arrow** | **"A"**.
+
 | Key      | Function |
 | ----------- | ----------- |
 | >   | Next Page |
