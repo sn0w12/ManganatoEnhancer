@@ -234,6 +234,16 @@ class MangaNato {
                 return;
             }
 
+            if ((keysPressed['Control'] || keysPressed['Meta']) && event.key == "Enter") {
+                const chapters = document.querySelectorAll<HTMLAnchorElement>(".chapter-name");
+                if (chapters) {
+                    const firstChapter = chapters[chapters.length - 1]
+                    firstChapter.click();
+                }
+                return;
+            }
+
+            // On bookmark page
             if (window.location.href.includes("bookmark")) {
                 if ((keysPressed['Control'] || keysPressed['Meta']) && event.key == "ArrowRight") {
                     let currentPage = 1;
@@ -369,13 +379,13 @@ class MangaNato {
             }
             if ((keysPressed['Control'] || keysPressed['Meta']) && keysPressed['i']) {
                 const serverButtons = document.querySelectorAll<HTMLElement>(".server-image-btn");
-                serverButtons.forEach(serverButton => {
-                    const dataL = serverButton.getAttribute("data-l"); // Get the value of the data-l attribute
+                for (let i = 0; i < serverButtons.length; i++) {
+                    const dataL = serverButtons[i].getAttribute("data-l"); // Get the value of the data-l attribute
                     if (dataL) {
-                        serverButton.click();
+                        serverButtons[i].click();
                         return;
                     }
-                })
+                }
                 this.logger.popup("No other server found.", "warning")
                 return;
             }
