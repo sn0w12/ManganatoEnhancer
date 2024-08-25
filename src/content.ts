@@ -307,15 +307,19 @@ class MangaNato {
             }
         }
 
+        function isNavigationPanelInView() {
+            const navigationPanelRect = navigationPanel.getBoundingClientRect();
+            const isNavigationPanelInView = navigationPanelRect.top < window.innerHeight && navigationPanelRect.bottom > 0;
+            return isNavigationPanelInView;
+        }
+
         // Function to find the closest image initially
         function findClosestImage() {
             const maxDistance = 100;
             let closestDistance = Infinity;
-            const navigationPanelRect = navigationPanel.getBoundingClientRect();
-            const isNavigationPanelInView = navigationPanelRect.top < window.innerHeight && navigationPanelRect.bottom > 0;
 
             // If the navigation panel is in view, set closestImageIndex to the last image
-            if (isNavigationPanelInView) {
+            if (isNavigationPanelInView()) {
                 closestImageIndex = images.length;
                 logger.log(`Outside of reader.`, "info");
                 return;
@@ -399,13 +403,24 @@ class MangaNato {
             }
 
             if (rightKeys.includes(event.key)) {
+                if (isNavigationPanelInView()) {
+                    const nextChapterButton = navigationPanel.querySelector<HTMLButtonElement>(".navi-change-chapter-btn-next");
+                    if (nextChapterButton) {
+                        nextChapterButton.click();
+                    } else {
+                        this.logger.popup("No Next Chapter", "warning");
+                    }
+                    return;
+                }
+
                 // Scroll to the next image (bottom)
                 if (closestImageIndex < images.length - 1) {
                     scrollToImage(closestImageIndex + 1, 'end');
                 } else if (closestImageIndex == images.length - 1) {
                     navigationPanel.scrollIntoView({ behavior: 'smooth', block: "end" });
                 }
-            } else if (leftKeys.includes(event.key)) {
+            }
+            if (leftKeys.includes(event.key)) {
                 // Scroll to the previous image (top)
                 if (closestImageIndex > 0) {
                     scrollToImage(closestImageIndex - 1, 'start');
