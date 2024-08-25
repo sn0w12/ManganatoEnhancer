@@ -3,6 +3,7 @@ type categoryType = "img" | "info" | "";
 
 class Logger {
     private prefix: string;
+    private popups: HTMLDivElement[] = [];
     private typeColorMap: { [key in LogType]: string } = {
         error: " background-color: #f15e55;",
         warning: " background-color: #ff5417;",
@@ -78,24 +79,21 @@ class Logger {
         console.groupEnd();
     }
 
-    popup(message: any, type: LogType = "info", detailMessage: string = "", timeOut: number = 2500) {
-         // Check if the popup container already exists; if not, create it
-        let container = document.getElementById('popup-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'popup-container';
-            container.style.position = 'fixed';
-            container.style.top = '10px';
-            container.style.right = '10px';
-            container.style.zIndex = '1000';
-            document.body.appendChild(container);
-        }
+    getTotalPopupHeight() {
+        let totalHeight = 0;
+        this.popups.forEach(cachedPopup => {
+            totalHeight += cachedPopup.offsetHeight + 10;
+        });
+        return totalHeight;
+    }
 
+    popup(message: any, type: LogType = "info", detailMessage: string = "", timeOut: number = 2500) {
         const color = this.typeColorMap[type].substring(19).slice(0, -1);
+
         // Create the popup element
         const popup = document.createElement('div');
         popup.style.backgroundColor = Logger.hexToRgb(color, 0.65);
-        popup.style.border = `1px solid ${Logger.hexToRgb(color, 1)}`
+        popup.style.border = `1px solid ${Logger.hexToRgb(color, 1)}`;
         popup.style.color = 'white';
         popup.style.padding = '15px';
         popup.style.marginBottom = '10px';
@@ -103,7 +101,10 @@ class Logger {
         popup.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
         popup.style.opacity = '0';
         popup.style.transform = 'translateY(-10px)';
-        popup.style.transition = 'opacity 0.3s, transform 0.3s';
+        popup.style.transition = '0.3s ease-in-out';
+        popup.style.position = 'fixed';
+        popup.style.right = '10px';
+        popup.style.zIndex = '1000';  // Ensure popups are on top of other elements
 
         // Add the content
         let content = `<strong>${message}</strong>`;
@@ -113,21 +114,39 @@ class Logger {
         popup.innerHTML = content;
 
         // Append the popup to the container
-        container.appendChild(popup);
+        document.body.appendChild(popup);
 
-        // Show the popup with animation
+        // Calculate position and show the popup
         setTimeout(() => {
+            const currentHeight = this.popups.reduce((acc, el) => acc + el.offsetHeight + 10, 10);
+            this.popups.push(popup);
+            popup.style.top = `${currentHeight}px`;
             popup.style.opacity = '1';
             popup.style.transform = 'translateY(0)';
         }, 100);
 
-        // Remove the popup after 5 seconds
+        // Remove the popup after the specified timeout
         setTimeout(() => {
             popup.style.opacity = '0';
             popup.style.transform = 'translateY(-10px)';
+
             setTimeout(() => {
                 popup.remove();
-            }, 300); // Wait for the animation to finish before removing
+
+                // Remove the popup from the array
+                const index = this.popups.indexOf(popup);
+                if (index !== -1) {
+                    this.popups.splice(index, 1);
+                }
+
+                // Adjust positions of remaining popups
+                this.popups.forEach((cachedPopup, idx) => {
+                    const newHeight = this.popups
+                        .slice(0, idx)
+                        .reduce((acc, el) => acc + el.offsetHeight + 10, 10);
+                    cachedPopup.style.top = `${newHeight}px`;
+                });
+            }, 300);  // Wait for the animation to finish before removing
         }, timeOut);
     }
 }
@@ -217,18 +236,17 @@ class MangaNato {
 
             if (window.location.href.includes("bookmark")) {
                 if ((keysPressed['Control'] || keysPressed['Meta']) && event.key == "ArrowRight") {
-                    const lastPage = getLastPage();
-                    if (keysPressed['Shift']) {
-                        window.location.href = `https://manganato.com/bookmark?page=${lastPage}`;
-                        return;
-                    }
-
                     let currentPage = 1;
+                    const lastPage = getLastPage();
                     if (window.location.href.includes("page")) {
                         const hrefPath = window.location.href.split("/");
                         currentPage = parseInt(hrefPath[hrefPath.length - 1].split("?")[1].substring(5));
                     }
                     if (currentPage < lastPage) {
+                        if (keysPressed['Shift']) {
+                            window.location.href = `https://manganato.com/bookmark?page=${lastPage}`;
+                            return;
+                        }
                         window.location.href = `https://manganato.com/bookmark?page=${currentPage + 1}`;
                         return;
                     }
@@ -236,17 +254,16 @@ class MangaNato {
                 }
 
                 if ((keysPressed['Control'] || keysPressed['Meta']) && event.key == "ArrowLeft") {
-                    if (keysPressed['Shift']) {
-                        window.location.href = `https://manganato.com/bookmark`;
-                        return;
-                    }
-
                     let currentPage = 1;
                     if (window.location.href.includes("page")) {
                         const hrefPath = window.location.href.split("/");
                         currentPage = parseInt(hrefPath[hrefPath.length - 1].split("?")[1].substring(5));
                     }
                     if (currentPage > 1) {
+                        if (keysPressed['Shift']) {
+                            window.location.href = `https://manganato.com/bookmark`;
+                            return;
+                        }
                         window.location.href = `https://manganato.com/bookmark?page=${currentPage - 1}`;
                         return;
                     }
