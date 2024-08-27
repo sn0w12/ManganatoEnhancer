@@ -153,6 +153,8 @@ class Logger {
 
 class MangaNato {
     private logger = new Logger("Manganato");
+    private progressBar = document.createElement("div");
+    private totalPages = 0;
 
     constructor() {
         this.adjustImageHeight();
@@ -160,6 +162,7 @@ class MangaNato {
         this.fixStyles();
         this.addMangaButtons();
         this.addGeneralShortcuts();
+        this.addMangaProgress();
     }
 
     adjustImageHeight() {
@@ -285,6 +288,59 @@ class MangaNato {
         });
     }
 
+    addMangaProgress() {
+        const progressbarParent = document.createElement("div");
+        progressbarParent.style.height = "100vh";
+        progressbarParent.style.position = "fixed";
+        progressbarParent.style.top = "0";
+        progressbarParent.style.right = "5px";
+        progressbarParent.style.width = "20px";
+        progressbarParent.style.padding = "5px";
+        progressbarParent.style.boxSizing = "border-box";
+        progressbarParent.style.backgroundColor = "transparent";
+
+        // Set up the progress bar container
+        this.progressBar.style.height = "100%";
+        this.progressBar.style.width = "100%";
+        this.progressBar.style.backgroundColor = "transparent";
+        this.progressBar.style.display = "flex";
+        this.progressBar.style.flexDirection = "column";
+        this.progressBar.style.justifyContent = "space-between";
+        this.progressBar.style.gap = "5px";
+        this.progressBar.style.alignItems = "center";
+
+        for (let i = 0; i < this.totalPages; i++) {
+            const pageRect = document.createElement("div");
+            pageRect.style.width = "100%";
+            pageRect.style.flexGrow = "1";
+            pageRect.style.backgroundColor = "#3e3e3e";
+            pageRect.style.borderRadius = "4px";
+            pageRect.style.transition = "background-color 0.25s ease";
+            this.progressBar.appendChild(pageRect);
+        }
+
+        // Append progress bar to parent container and parent container to body
+        this.logger.log(this.progressBar);
+        progressbarParent.appendChild(this.progressBar);
+        document.body.appendChild(progressbarParent);
+    }
+
+    updateMangaProgress(currentPage: number) {
+        this.logger.log(this.progressBar.children);
+        this.logger.log(currentPage);
+
+        for (let i = 0; i < this.totalPages; i++) {
+            const pageRect = this.progressBar.children[i] as HTMLElement;
+            if (pageRect) {
+                if (i < currentPage + 1) {
+                    pageRect.style.backgroundColor = "#ff5417";
+                } else {
+                    pageRect.style.backgroundColor = "#3e3e3e";
+                }
+            }
+        }
+    }
+
     addMangaButtons() {
         let closestImageIndex = -1; // Keeps track of the current image index
         let scrollTimeout: number;
@@ -297,7 +353,8 @@ class MangaNato {
             return;
         }
         const images = pageDiv.querySelectorAll('img');
-        logger.log(`Total images: ${images.length}`, "img");
+        this.totalPages = images.length;
+        logger.log(`Total images: ${this.totalPages}`, "img");
 
         const navigationPanel = document.querySelectorAll(".panel-navigation")[1]
 
@@ -315,6 +372,7 @@ class MangaNato {
             return isNavigationPanelInView;
         }
 
+        const localUpdateMangaProgress = this.updateMangaProgress.bind(this);
         // Function to find the closest image initially
         function findClosestImage() {
             const maxDistance = 100;
@@ -335,6 +393,7 @@ class MangaNato {
                 }
             });
 
+            localUpdateMangaProgress(closestImageIndex);
             logger.log(`Closest image index: ${closestImageIndex}`, "img");
         }
 
