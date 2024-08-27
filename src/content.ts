@@ -294,7 +294,7 @@ class MangaNato {
         progressbarParent.style.position = "fixed";
         progressbarParent.style.top = "0";
         progressbarParent.style.right = "5px";
-        progressbarParent.style.width = "20px";
+        progressbarParent.style.width = "15px";
         progressbarParent.style.padding = "5px";
         progressbarParent.style.boxSizing = "border-box";
         progressbarParent.style.backgroundColor = "transparent";
@@ -306,7 +306,7 @@ class MangaNato {
         this.progressBar.style.display = "flex";
         this.progressBar.style.flexDirection = "column";
         this.progressBar.style.justifyContent = "space-between";
-        this.progressBar.style.gap = "5px";
+        this.progressBar.style.gap = "2.5px";
         this.progressBar.style.alignItems = "center";
 
         for (let i = 0; i < this.totalPages; i++) {
@@ -326,9 +326,6 @@ class MangaNato {
     }
 
     updateMangaProgress(currentPage: number) {
-        this.logger.log(this.progressBar.children);
-        this.logger.log(currentPage);
-
         for (let i = 0; i < this.totalPages; i++) {
             const pageRect = this.progressBar.children[i] as HTMLElement;
             if (pageRect) {
@@ -374,14 +371,17 @@ class MangaNato {
 
         const localUpdateMangaProgress = this.updateMangaProgress.bind(this);
         // Function to find the closest image initially
-        function findClosestImage() {
+        function findClosestImage(shouldLog = true) {
             const maxDistance = 100;
             let closestDistance = Infinity;
 
             // If the navigation panel is in view, set closestImageIndex to the last image
             if (isNavigationPanelInView()) {
                 closestImageIndex = images.length;
-                logger.log(`Outside of reader.`, "info");
+                if (shouldLog) {
+                    logger.log(`Outside of reader.`, "info");
+                }
+                localUpdateMangaProgress(closestImageIndex);
                 return;
             }
 
@@ -394,7 +394,9 @@ class MangaNato {
             });
 
             localUpdateMangaProgress(closestImageIndex);
-            logger.log(`Closest image index: ${closestImageIndex}`, "img");
+            if (shouldLog) {
+                logger.log(`Closest image index: ${closestImageIndex}`, "img");
+            }
         }
 
         // Find the closest image when the script runs
@@ -521,6 +523,10 @@ class MangaNato {
                 findClosestImage(); // Update closest image after scrolling has stopped
             }, 50);
         }
+
+        setInterval(() => {
+            findClosestImage(false);
+        }, 100);
 
         // Reset closest image on scroll to re-evaluate when scrolling has stopped
         window.addEventListener('scroll', onScrollStop);
