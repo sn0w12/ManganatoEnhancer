@@ -293,9 +293,10 @@ class MangaNato {
         progressbarParent.style.height = "100vh";
         progressbarParent.style.position = "fixed";
         progressbarParent.style.top = "0";
-        progressbarParent.style.right = "5px";
+        progressbarParent.style.right = "0";
         progressbarParent.style.width = "15px";
         progressbarParent.style.padding = "5px";
+        progressbarParent.style.paddingRight = "0px";
         progressbarParent.style.boxSizing = "border-box";
         progressbarParent.style.backgroundColor = "transparent";
 
@@ -372,7 +373,7 @@ class MangaNato {
         const localUpdateMangaProgress = this.updateMangaProgress.bind(this);
         // Function to find the closest image initially
         function findClosestImage(shouldLog = true) {
-            const maxDistance = 100;
+            const maxDistance = 200;
             let closestDistance = Infinity;
 
             // If the navigation panel is in view, set closestImageIndex to the last image
@@ -524,9 +525,11 @@ class MangaNato {
             }, 50);
         }
 
+        /*
         setInterval(() => {
             findClosestImage(false);
         }, 100);
+        */
 
         // Reset closest image on scroll to re-evaluate when scrolling has stopped
         window.addEventListener('scroll', onScrollStop);
