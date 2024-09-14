@@ -498,8 +498,8 @@ class MangaNato {
                 return;
             }
             if ((keysPressed['Control'] || keysPressed['Meta']) && keysPressed['Enter']) {
-                const mangaUrl = document.querySelectorAll<HTMLAnchorElement>(".a-h");
-                const url = mangaUrl[1]?.getAttribute("href");
+                const currentUrl = window.location.href;
+                const url = currentUrl.substring(0, currentUrl.lastIndexOf('/'));
 
                 if (url) {
                     chrome.runtime.sendMessage({
