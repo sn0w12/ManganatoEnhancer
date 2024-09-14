@@ -12,5 +12,8 @@
   "devDependencies": {
     "@types/chrome": "^0.0.270",
     "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "manganato": "file:"
   }
 }
