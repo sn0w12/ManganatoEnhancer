@@ -18,6 +18,26 @@ class Logger {
 
     constructor(prefix: string) {
         this.prefix = prefix;
+        this.addCss();
+    }
+
+    addCss() {
+        const style = document.createElement('style');
+        style.innerHTML = `
+.popup {
+    color: white;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: 0.3s ease-in-out;
+    position: fixed;
+    right: 15px;
+    z-index: 1000;  // Ensure popups are on top of other elements
+}
+        `;
+        document.head.appendChild(style);
     }
 
     static hexToRgb(hex: string, opacity: number) {
@@ -92,19 +112,9 @@ class Logger {
 
         // Create the popup element
         const popup = document.createElement('div');
+        popup.classList.add('popup');
         popup.style.backgroundColor = Logger.hexToRgb(color, 0.65);
         popup.style.border = `1px solid ${Logger.hexToRgb(color, 1)}`;
-        popup.style.color = 'white';
-        popup.style.padding = '15px';
-        popup.style.marginBottom = '10px';
-        popup.style.borderRadius = '5px';
-        popup.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
-        popup.style.opacity = '0';
-        popup.style.transform = 'translateY(-10px)';
-        popup.style.transition = '0.3s ease-in-out';
-        popup.style.position = 'fixed';
-        popup.style.right = '15px';
-        popup.style.zIndex = '1000';  // Ensure popups are on top of other elements
 
         // Add the content
         let content = `<strong>${message}</strong>`;
@@ -116,9 +126,10 @@ class Logger {
         // Append the popup to the container
         document.body.appendChild(popup);
 
+        const offset = 5;
         // Calculate position and show the popup
         setTimeout(() => {
-            const currentHeight = this.popups.reduce((acc, el) => acc + el.offsetHeight + 10, 10);
+            const currentHeight = this.popups.reduce((acc, el) => acc + el.offsetHeight + offset, offset);
             this.popups.push(popup);
             popup.style.top = `${currentHeight}px`;
             popup.style.opacity = '1';
@@ -143,7 +154,7 @@ class Logger {
                 this.popups.forEach((cachedPopup, idx) => {
                     const newHeight = this.popups
                         .slice(0, idx)
-                        .reduce((acc, el) => acc + el.offsetHeight + 10, 10);
+                        .reduce((acc, el) => acc + el.offsetHeight + offset, offset);
                     cachedPopup.style.top = `${newHeight}px`;
                 });
             }, 300);  // Wait for the animation to finish before removing
