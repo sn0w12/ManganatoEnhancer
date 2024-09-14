@@ -499,7 +499,7 @@ class MangaNato {
             }
             if ((keysPressed['Control'] || keysPressed['Meta']) && keysPressed['Enter']) {
                 const mangaUrl = document.querySelectorAll<HTMLAnchorElement>(".a-h");
-                const url = mangaUrl[7]?.getAttribute("href");
+                const url = mangaUrl[1]?.getAttribute("href");
 
                 if (url) {
                     chrome.runtime.sendMessage({
