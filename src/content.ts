@@ -155,14 +155,57 @@ class MangaNato {
     private logger = new Logger("Manganato");
     private progressBar = document.createElement("div");
     private totalPages = 0;
+    private scrollToImage!: (index: number, position: 'start' | 'center' | 'end' | 'nearest') => void;
 
     constructor() {
+        this.addCss();
         this.adjustImageHeight();
         this.removeAdDivs();
         this.fixStyles();
         this.addMangaButtons();
         this.addGeneralShortcuts();
         this.addMangaProgress();
+    }
+
+    addCss() {
+        const style = document.createElement('style');
+        style.innerHTML = `
+.progressbar-parent {
+    height: 100vh;
+    position: fixed;
+    top: 0px;
+    right: 0px;
+    width: 15px;
+    padding: 5px;
+    box-sizing: border-box;
+    background-color: transparent;
+}
+.progress-bar {
+    height: 100%;
+    width: 100%;
+    background-color: transparent;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 2.5px;
+    align-items: center;
+}
+.page-rect {
+    width: 100%;
+    flex-grow: 1;
+    background-color: #3e3e3e;
+    border-radius: 4px;
+    transition: background-color 0.25s ease;
+    cursor: pointer;
+}
+.page-rect.selected {
+    background-color: #ff5417 !important;
+}
+.page-rect:hover {
+    background-color: #ff9069 !important;
+}
+        `;
+        document.head.appendChild(style);
     }
 
     adjustImageHeight() {
@@ -290,32 +333,18 @@ class MangaNato {
 
     addMangaProgress() {
         const progressbarParent = document.createElement("div");
-        progressbarParent.style.height = "100vh";
-        progressbarParent.style.position = "fixed";
-        progressbarParent.style.top = "0px";
-        progressbarParent.style.right = "0px";
-        progressbarParent.style.width = "15px";
-        progressbarParent.style.padding = "5px";
-        progressbarParent.style.boxSizing = "border-box";
-        progressbarParent.style.backgroundColor = "transparent";
-
-        // Set up the progress bar container
-        this.progressBar.style.height = "100%";
-        this.progressBar.style.width = "100%";
-        this.progressBar.style.backgroundColor = "transparent";
-        this.progressBar.style.display = "flex";
-        this.progressBar.style.flexDirection = "column";
-        this.progressBar.style.justifyContent = "space-between";
-        this.progressBar.style.gap = "2.5px";
-        this.progressBar.style.alignItems = "center";
+        progressbarParent.classList.add("progressbar-parent");
+        this.progressBar.classList.add("progress-bar");
 
         for (let i = 0; i < this.totalPages; i++) {
             const pageRect = document.createElement("div");
-            pageRect.style.width = "100%";
-            pageRect.style.flexGrow = "1";
-            pageRect.style.backgroundColor = "#3e3e3e";
-            pageRect.style.borderRadius = "4px";
-            pageRect.style.transition = "background-color 0.25s ease";
+            pageRect.classList.add("page-rect");
+
+            // Add event listener to navigate to the corresponding page
+            pageRect.addEventListener("click", () => {
+                this.scrollToImage(i, "start");
+            });
+
             this.progressBar.appendChild(pageRect);
         }
 
@@ -330,9 +359,9 @@ class MangaNato {
             const pageRect = this.progressBar.children[i] as HTMLElement;
             if (pageRect) {
                 if (i < currentPage + 1) {
-                    pageRect.style.backgroundColor = "#ff5417";
+                    pageRect.classList.add("selected");
                 } else {
-                    pageRect.style.backgroundColor = "#3e3e3e";
+                    pageRect.classList.remove("selected");
                 }
             }
         }
@@ -362,6 +391,7 @@ class MangaNato {
                 closestImageIndex = index; // Update the current image index
             }
         }
+        this.scrollToImage = scrollToImage;
 
         function isNavigationPanelInView() {
             const navigationPanelRect = navigationPanel.getBoundingClientRect();
