@@ -103,7 +103,7 @@ class Logger {
         popup.style.transform = 'translateY(-10px)';
         popup.style.transition = '0.3s ease-in-out';
         popup.style.position = 'fixed';
-        popup.style.right = '10px';
+        popup.style.right = '15px';
         popup.style.zIndex = '1000';  // Ensure popups are on top of other elements
 
         // Add the content
@@ -292,11 +292,10 @@ class MangaNato {
         const progressbarParent = document.createElement("div");
         progressbarParent.style.height = "100vh";
         progressbarParent.style.position = "fixed";
-        progressbarParent.style.top = "0";
-        progressbarParent.style.right = "0";
+        progressbarParent.style.top = "0px";
+        progressbarParent.style.right = "0px";
         progressbarParent.style.width = "15px";
         progressbarParent.style.padding = "5px";
-        progressbarParent.style.paddingRight = "0px";
         progressbarParent.style.boxSizing = "border-box";
         progressbarParent.style.backgroundColor = "transparent";
 
