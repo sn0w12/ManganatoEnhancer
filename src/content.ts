@@ -1,10 +1,13 @@
 import { Logger } from "./logger";
 import { Settings } from "./settings";
+import { ShortcutManager } from "./shortcutManager";
 
 class MangaNato {
     private logger = new Logger("Manganato");
+    private shortcutManager = new ShortcutManager();
     private progressBar = document.createElement("div");
     private totalPages = 0;
+    private currentPage = -1;
     private images!: NodeListOf<HTMLImageElement>;
     private settings: Settings = new Settings();
     static maxChapters = 50;
@@ -55,9 +58,29 @@ class MangaNato {
     private addSettings() {
         this.settings.addCategory('General Settings');
         this.settings.addCheckboxSetting('smoothScrolling', 'Smooth Scrolling', false);
+
         this.settings.addCategory('Shortcut Keys');
-        this.settings.addTextInputSetting('nextKeys', 'Next Page', 'ArrowRight');
-        this.settings.addTextInputSetting('lastKeys', 'Last Page', 'ArrowLeft');
+        this.settings.addKeyBindingSetting('homeKeys', 'Home', 'Control+m');
+        this.settings.addKeyBindingSetting('bookmarksKeys', 'Bookmarks', 'Control+b');
+
+        this.settings.addCategory('Manga Shortcut Keys');
+        this.settings.addKeyBindingSetting('nextKeys', 'Next Page', 'ArrowRight');
+        this.settings.addKeyBindingSetting('previousKeys', 'Previous Page', 'ArrowLeft');
+        this.settings.addKeyBindingSetting('lastPageKeys', 'Last Page', 'Shift+ArrowRight');
+        this.settings.addKeyBindingSetting('firstPageKeys', 'First Page', 'Shift+ArrowLeft');
+        this.settings.addKeyBindingSetting('nextChapterKeys', 'Next Chapter', 'Control+ArrowRight');
+        this.settings.addKeyBindingSetting('previousChapterKeys', 'Previous Chapter', 'Control+ArrowLeft');
+        this.settings.addKeyBindingSetting('bookmarkKeys', 'Bookmark', 'Control+Enter');
+        this.settings.addKeyBindingSetting('serverKeys', 'Image Server', 'Control+i');
+
+        this.settings.addCategory('Manga Page Shortcut Keys', 'On a mangas main page.');
+        this.settings.addKeyBindingSetting('firstChapterKey', 'First Chapter', 'Control+Enter');
+
+        this.settings.addCategory('Bookmarks Page Shortcut Keys', 'In your bookmarks page.');
+        this.settings.addKeyBindingSetting('nextBookmarkPageKeys', 'Next Page', 'Control+ArrowRight');
+        this.settings.addKeyBindingSetting('previousBookmarkPageKeys', 'Previous Page', 'Control+ArrowLeft');
+        this.settings.addKeyBindingSetting('lastBookmarkPageKeys', 'Last Page', 'Control+Shift+ArrowRight');
+        this.settings.addKeyBindingSetting('firstBookmarkPageKeys', 'First Page', 'Control+Shift+ArrowLeft');
     }
 
     initializeImages() {
@@ -74,7 +97,6 @@ class MangaNato {
         const behavior = this.settings.getSetting("smoothScrolling") ? 'smooth' : 'auto';
         if (index >= 0 && index < this.totalPages) {
             this.images[index].scrollIntoView({ behavior: behavior, block: position });
-            //closestImageIndex = index; // Update the current image index
         }
     }
 
@@ -147,27 +169,14 @@ class MangaNato {
     addNavigationBoxes() {
         const leftBox = document.createElement('div');
         leftBox.classList.add('navigation-box', 'left');
-        leftBox.addEventListener('click', () => this.emulateKeyPress('ArrowLeft'));
+        leftBox.addEventListener('click', () => this.scrollToImage(this.currentPage - 1, 'start'));
 
         const rightBox = document.createElement('div');
         rightBox.classList.add('navigation-box', 'right');
-        rightBox.addEventListener('click', () => this.emulateKeyPress('ArrowRight'));
+        rightBox.addEventListener('click', () => this.scrollToImage(this.currentPage + 1, 'start'));
 
         document.body.appendChild(leftBox);
         document.body.appendChild(rightBox);
-    }
-
-    emulateKeyPress(key: string) {
-        const event = new KeyboardEvent('keydown', {
-            key: key,
-            code: key,
-            keyCode: key === 'ArrowRight' ? 39 : 37,
-            which: key === 'ArrowRight' ? 39 : 37,
-            bubbles: true,
-            cancelable: true,
-            ctrlKey: true
-        });
-        document.dispatchEvent(event);
     }
 
     adjustImageHeight() {
@@ -223,82 +232,108 @@ class MangaNato {
     }
 
     addGeneralShortcuts() {
-        let keysPressed: { [key: string]: boolean } = {};
+        const shortcutManager = this.shortcutManager;
 
-        function getLastPage() {
+        // Helper functions
+        const navigateTo = (url: string) => {
+            window.location.href = url;
+        };
+
+        const isOnBookmarkPage = () => {
+            return window.location.href.includes("bookmark");
+        };
+
+        const getCurrentBookmarkPage = (): number => {
+            const match = window.location.href.match(/page=(\d+)/);
+            return match ? parseInt(match[1]) : 1;
+        };
+
+        const getLastBookmarkPage = (): number => {
             const lastPageElement = document.querySelector<HTMLAnchorElement>(".go-p-end");
-            if (lastPageElement != null && lastPageElement.textContent) {
-                return parseInt(lastPageElement.textContent.substring(5).slice(0, -1));
+            if (lastPageElement && lastPageElement.textContent) {
+                return parseInt(lastPageElement.textContent.replace(/[^\d]/g, ''));
             }
-            return 0;
-        }
+            return 1;
+        };
 
-        window.addEventListener('keyup', (event) => {
-            delete keysPressed[event.key]; // Remove the key from the pressed keys list
-        });
+        // Load user settings
+        const homeKeys = this.settings.getSetting("homeKeys").split(",").map((key: string) => key.trim());
+        const bookmarksKeys = this.settings.getSetting("bookmarksKeys").split(",").map((key: string) => key.trim());
+        const firstChapterKey = this.settings.getSetting("firstChapterKey").split(",").map((key: string) => key.trim());
 
-        window.addEventListener('keydown', (event) => {
-            keysPressed[event.key] = true;
+        const nextBookmarkPageKeys = this.settings.getSetting("nextBookmarkPageKeys").split(",").map((key: string) => key.trim());
+        const previousBookmarkPageKeys = this.settings.getSetting("previousBookmarkPageKeys").split(",").map((key: string) => key.trim());
+        const lastBookmarkPageKeys = this.settings.getSetting("lastBookmarkPageKeys").split(",").map((key: string) => key.trim());
+        const firstBookmarkPageKeys = this.settings.getSetting("firstBookmarkPageKeys").split(",").map((key: string) => key.trim());
 
-            if ((keysPressed['Control'] || keysPressed['Meta']) && event.key == "b") {
-                window.location.href = "https://manganato.com/bookmark";
-                return;
-            }
+        // Register shortcuts
+        shortcutManager.registerShortcut(
+            homeKeys,
+            () => navigateTo("https://manganato.com/")
+        );
 
-            if ((keysPressed['Control'] || keysPressed['Meta']) && event.key == "m") {
-                window.location.href = "https://manganato.com/";
-                return;
-            }
+        shortcutManager.registerShortcut(
+            bookmarksKeys,
+            () => navigateTo("https://manganato.com/bookmark")
+        );
 
-            if ((keysPressed['Control'] || keysPressed['Meta']) && event.key == "Enter") {
+        shortcutManager.registerShortcut(
+            firstChapterKey,
+            () => {
                 const chapters = document.querySelectorAll<HTMLAnchorElement>(".chapter-name");
-                if (chapters) {
-                    const firstChapter = chapters[chapters.length - 1]
-                    if (firstChapter) {
-                        firstChapter.click();
-                    }
+                if (chapters.length > 0) {
+                    const firstChapter = chapters[chapters.length - 1];
+                    firstChapter.click();
                 }
-                return;
             }
+        );
 
-            // On bookmark page
-            if (window.location.href.includes("bookmark")) {
-                if ((keysPressed['Control'] || keysPressed['Meta']) && event.key == "ArrowRight") {
-                    let currentPage = 1;
-                    const lastPage = getLastPage();
-                    if (window.location.href.includes("page")) {
-                        const hrefPath = window.location.href.split("/");
-                        currentPage = parseInt(hrefPath[hrefPath.length - 1].split("?")[1].substring(5));
-                    }
-                    if (currentPage < lastPage) {
-                        if (keysPressed['Shift']) {
-                            window.location.href = `https://manganato.com/bookmark?page=${lastPage}`;
-                            return;
-                        }
-                        window.location.href = `https://manganato.com/bookmark?page=${currentPage + 1}`;
-                        return;
-                    }
+        // Bookmark page navigation
+        const bookmarkNavigationCondition = isOnBookmarkPage;
+
+        shortcutManager.registerShortcut(
+            nextBookmarkPageKeys,
+            () => {
+                const currentPage = getCurrentBookmarkPage();
+                const lastPage = getLastBookmarkPage();
+                if (currentPage < lastPage) {
+                    navigateTo(`https://manganato.com/bookmark?page=${currentPage + 1}`);
+                } else {
                     this.logger.popup("Already on Last Page", "warning");
                 }
+            },
+            bookmarkNavigationCondition
+        );
 
-                if ((keysPressed['Control'] || keysPressed['Meta']) && event.key == "ArrowLeft") {
-                    let currentPage = 1;
-                    if (window.location.href.includes("page")) {
-                        const hrefPath = window.location.href.split("/");
-                        currentPage = parseInt(hrefPath[hrefPath.length - 1].split("?")[1].substring(5));
-                    }
-                    if (currentPage > 1) {
-                        if (keysPressed['Shift']) {
-                            window.location.href = `https://manganato.com/bookmark`;
-                            return;
-                        }
-                        window.location.href = `https://manganato.com/bookmark?page=${currentPage - 1}`;
-                        return;
-                    }
+        shortcutManager.registerShortcut(
+            lastBookmarkPageKeys,
+            () => {
+                const lastPage = getLastBookmarkPage();
+                navigateTo(`https://manganato.com/bookmark?page=${lastPage}`);
+            },
+            bookmarkNavigationCondition
+        );
+
+        shortcutManager.registerShortcut(
+            previousBookmarkPageKeys,
+            () => {
+                const currentPage = getCurrentBookmarkPage();
+                if (currentPage > 1) {
+                    navigateTo(`https://manganato.com/bookmark?page=${currentPage - 1}`);
+                } else {
                     this.logger.popup("Already on First Page", "warning");
                 }
-            }
-        });
+            },
+            bookmarkNavigationCondition
+        );
+
+        shortcutManager.registerShortcut(
+            firstBookmarkPageKeys,
+            () => {
+                navigateTo("https://manganato.com/bookmark");
+            },
+            bookmarkNavigationCondition
+        );
     }
 
     addMangaProgress() {
@@ -325,6 +360,7 @@ class MangaNato {
     }
 
     updateMangaProgress(currentPage: number) {
+        this.currentPage = currentPage;
         for (let i = 0; i < this.totalPages; i++) {
             const pageRect = this.progressBar.children[i] as HTMLElement;
             if (pageRect) {
@@ -346,15 +382,17 @@ class MangaNato {
 
         const navigationPanel = document.querySelectorAll(".panel-navigation")[1];
 
-        function isNavigationPanelInView() {
+        const isNavigationPanelInView = () => {
             const navigationPanelRect = navigationPanel.getBoundingClientRect();
-            const isNavigationPanelInView = navigationPanelRect.top < window.innerHeight && navigationPanelRect.bottom > 0;
-            return isNavigationPanelInView;
-        }
+            return (
+                navigationPanelRect.top < window.innerHeight && navigationPanelRect.bottom > 0
+            );
+        };
 
         const localUpdateMangaProgress = this.updateMangaProgress.bind(this);
+
         // Function to find the closest image initially
-        function findClosestImage(shouldLog = true) {
+        const findClosestImage = (shouldLog = true) => {
             const maxDistance = 200;
             let closestDistance = Infinity;
 
@@ -386,76 +424,85 @@ class MangaNato {
             if (shouldLog) {
                 logger.log(`Closest image index: ${closestImageIndex}`, "img");
             }
-        }
+        };
 
         // Find the closest image when the script runs
         findClosestImage();
 
-        let keysPressed: { [key: string]: boolean } = {};
-        const rightKeys = this.settings.getSetting("nextKeys").split(",").map((item: string) => item.trim());
-        const leftKeys = this.settings.getSetting("lastKeys").split(",").map((item: string) => item.trim());
+        // Initialize the ShortcutManager
+        const shortcutManager = this.shortcutManager;
 
-        window.addEventListener('keyup', (event) => {
-            delete keysPressed[event.key]; // Remove the key from the pressed keys list
+        // Retrieve key settings
+        const nextPageKeys = this.settings.getSetting("nextKeys").split(",").map((key: string) => key.trim());
+        const previousPageKeys = this.settings.getSetting("previousKeys").split(",").map((key: string) => key.trim());
+        const lastPageKeys = this.settings.getSetting("lastPageKeys").split(",").map((key: string) => key.trim());
+        const firstPageKeys = this.settings.getSetting("firstPageKeys").split(",").map((key: string) => key.trim());
+        const nextChapterKeys = this.settings.getSetting("nextChapterKeys").split(",").map((key: string) => key.trim());
+        const previousChapterKeys = this.settings.getSetting("previousChapterKeys").split(",").map((key: string) => key.trim());
+
+        const bookmarkKeys = this.settings.getSetting("bookmarkKeys").split(",").map((key: string) => key.trim());
+        const serverKeys = this.settings.getSetting("serverKeys").split(",").map((key: string) => key.trim());
+
+        console.log(nextPageKeys, previousPageKeys, lastPageKeys, firstPageKeys, nextChapterKeys, previousChapterKeys, bookmarkKeys, serverKeys);
+
+        // Register shortcuts
+        shortcutManager.registerShortcut(lastPageKeys, () => {
+            const behavior = this.settings.getSetting("smoothScrolling") ? "smooth" : "auto";
+            navigationPanel.scrollIntoView({ behavior: behavior, block: "end" });
+            findClosestImage();
         });
 
-        // Event listener for key presses
-        window.addEventListener('keydown', (event) => {
-            keysPressed[event.key] = true;
+        shortcutManager.registerShortcut(firstPageKeys, () => {
+            this.scrollToImage(0, "start");
+            findClosestImage();
+        });
 
-            // Key combinations
-            if (keysPressed['Shift'] && rightKeys.includes(event.key)) {
-                const behavior = this.settings.getSetting("smoothScrolling") ? 'smooth' : 'auto';
-                navigationPanel.scrollIntoView({ behavior: behavior, block: "end" });
-                findClosestImage();
-                return;
+        shortcutManager.registerShortcut(nextChapterKeys, () => {
+            const nextChapterButton = navigationPanel.querySelector<HTMLButtonElement>(
+                ".navi-change-chapter-btn-next"
+            );
+            if (nextChapterButton) {
+                nextChapterButton.click();
+            } else {
+                this.logger.popup("No Next Chapter", "warning");
             }
-            if (keysPressed['Shift'] && leftKeys.includes(event.key)) {
-                this.scrollToImage(0, 'start');
-                findClosestImage();
-                return;
-            }
+        });
 
-            if ((keysPressed['Control'] || keysPressed['Meta']) && rightKeys.includes(event.key)) {
-                const nextChapterButton = navigationPanel.querySelector<HTMLButtonElement>(".navi-change-chapter-btn-next");
-                if (nextChapterButton) {
-                    nextChapterButton.click();
-                } else {
-                    this.logger.popup("No Next Chapter", "warning");
-                }
-                return;
+        shortcutManager.registerShortcut(previousChapterKeys, () => {
+            const lastChapterButton = navigationPanel.querySelector<HTMLButtonElement>(
+                ".navi-change-chapter-btn-prev"
+            );
+            if (lastChapterButton) {
+                lastChapterButton.click();
+            } else {
+                this.logger.popup("No Previous Chapter", "warning");
             }
-            if ((keysPressed['Control'] || keysPressed['Meta']) && leftKeys.includes(event.key)) {
-                const lastChapterButton = navigationPanel.querySelector<HTMLButtonElement>(".navi-change-chapter-btn-prev");
-                if (lastChapterButton) {
-                    lastChapterButton.click();
-                } else {
-                    this.logger.popup("No Previous Chapter", "warning");
-                }
-                return;
-            }
-            if ((keysPressed['Control'] || keysPressed['Meta']) && keysPressed['i']) {
-                const serverButtons = document.querySelectorAll<HTMLElement>(".server-image-btn");
-                for (let i = 0; i < serverButtons.length; i++) {
-                    const dataL = serverButtons[i].getAttribute("data-l"); // Get the value of the data-l attribute
-                    if (dataL) {
-                        serverButtons[i].click();
-                        return;
-                    }
-                }
-                this.logger.popup("No other server found.", "warning")
-                return;
-            }
-            if ((keysPressed['Control'] || keysPressed['Meta']) && keysPressed['Enter']) {
-                const currentUrl = window.location.href;
-                const url = currentUrl.substring(0, currentUrl.lastIndexOf('/'));
+        });
 
-                if (url) {
-                    chrome.runtime.sendMessage({
+        shortcutManager.registerShortcut(serverKeys , () => {
+            const serverButtons = document.querySelectorAll<HTMLElement>(".server-image-btn");
+            for (let i = 0; i < serverButtons.length; i++) {
+                const dataL = serverButtons[i].getAttribute("data-l"); // Get the value of the data-l attribute
+                if (dataL) {
+                    serverButtons[i].click();
+                    return;
+                }
+            }
+            this.logger.popup("No other server found.", "warning");
+        });
+
+        shortcutManager.registerShortcut(bookmarkKeys, () => {
+            const currentUrl = window.location.href;
+            const url = currentUrl.substring(0, currentUrl.lastIndexOf("/"));
+
+            if (url) {
+                chrome.runtime.sendMessage(
+                    {
                         action: "openPageAndPressButton",
-                        url: url
-                    }, (response) => {
-                        console.log(response?.success)
+                        url: url,
+                    },
+                    (response) => {
+                        console.log(response?.success);
                         if (response?.success === 1) {
                             this.logger.popup("Bookmarked!", "success");
                         } else if (response?.success === 2) {
@@ -463,66 +510,61 @@ class MangaNato {
                         } else {
                             this.logger.popup("Failed to Bookmark.", "error");
                         }
-                    });
-                } else {
-                    this.logger.popup("No valid URL found.", "warning");
-                }
-
-                return;
-              }
-
-            // If at top of page scroll to first image.
-            if (window.scrollY <= 100) {
-                if (rightKeys.includes(event.key)) {
-                    this.scrollToImage(0, 'start');
-                    return;
-                }
-            }
-
-            if (rightKeys.includes(event.key)) {
-                if (isNavigationPanelInView()) {
-                    const nextChapterButton = navigationPanel.querySelector<HTMLButtonElement>(".navi-change-chapter-btn-next");
-                    if (nextChapterButton) {
-                        nextChapterButton.click();
-                    } else {
-                        this.logger.popup("No Next Chapter", "warning");
                     }
-                    return;
-                }
-
-                // Scroll to the next image (bottom)
-                if (closestImageIndex < images.length - 1) {
-                    this.scrollToImage(closestImageIndex + 1, 'end');
-                } else if (closestImageIndex == images.length - 1) {
-                    const behavior = this.settings.getSetting("smoothScrolling") ? 'smooth' : 'auto';
-                    navigationPanel.scrollIntoView({ behavior: behavior, block: "end" });
-                }
-            }
-            if (leftKeys.includes(event.key)) {
-                // Scroll to the previous image (top)
-                if (closestImageIndex > 0) {
-                    this.scrollToImage(closestImageIndex - 1, 'start');
-                } else if (closestImageIndex == 0) {
-                    this.scrollToImage(closestImageIndex, 'start');
-                }
+                );
+            } else {
+                this.logger.popup("No valid URL found.", "warning");
             }
         });
 
-        function onScrollStop() {
+        shortcutManager.registerShortcut(
+            nextPageKeys,
+            () => {
+                this.scrollToImage(0, "start");
+            },
+            () => window.scrollY <= 100
+        );
+
+        shortcutManager.registerShortcut(nextPageKeys, () => {
+            if (isNavigationPanelInView()) {
+                const nextChapterButton = navigationPanel.querySelector<HTMLButtonElement>(
+                    ".navi-change-chapter-btn-next"
+                );
+                if (nextChapterButton) {
+                    nextChapterButton.click();
+                } else {
+                    this.logger.popup("No Next Chapter", "warning");
+                }
+                return;
+            }
+
+            // Scroll to the next image (bottom)
+            if (closestImageIndex < images.length - 1) {
+                this.scrollToImage(closestImageIndex + 1, "end");
+            } else if (closestImageIndex === images.length - 1) {
+                const behavior = this.settings.getSetting("smoothScrolling") ? "smooth" : "auto";
+                navigationPanel.scrollIntoView({ behavior: behavior, block: "end" });
+            }
+        });
+
+        shortcutManager.registerShortcut(previousPageKeys, () => {
+            // Scroll to the previous image (top)
+            if (closestImageIndex > 0) {
+                this.scrollToImage(closestImageIndex - 1, "start");
+            } else if (closestImageIndex === 0) {
+                this.scrollToImage(closestImageIndex, "start");
+            }
+        });
+
+        const onScrollStop = () => {
             clearTimeout(scrollTimeout);
             scrollTimeout = setTimeout(() => {
                 findClosestImage(); // Update closest image after scrolling has stopped
             }, 50) as unknown as number;
-        }
-
-        /*
-        setInterval(() => {
-            findClosestImage(false);
-        }, 100);
-        */
+        };
 
         // Reset closest image on scroll to re-evaluate when scrolling has stopped
-        window.addEventListener('scroll', onScrollStop);
+        window.addEventListener("scroll", onScrollStop);
     }
 }
 
