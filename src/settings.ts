@@ -59,7 +59,8 @@ class Settings {
             }
 
             .settings-modal .close-button {
-                background-color: #dc3545;
+                background-color: #ff5417;
+                width: 100%;
                 color: white;
                 border: none;
                 padding: 5px 10px;
