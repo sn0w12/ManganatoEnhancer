@@ -4,6 +4,7 @@ class Settings {
     private closeButton: HTMLButtonElement;
     private settingsContainer: HTMLDivElement;
     private settings: { [key: string]: any } = {};
+    private currentCategoryContainer: HTMLDivElement | null = null;
 
     constructor() {
         this.addCss();
@@ -42,6 +43,8 @@ class Settings {
 
             .settings-modal {
                 position: fixed;
+                max-height: 90%;
+                overflow-y: auto;
                 top: 50%;
                 left: 50%;
                 transform: translate(-50%, -50%);
@@ -90,10 +93,28 @@ class Settings {
             }
 
             .settings-category-title {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
                 font-size: 18px;
                 font-weight: bold;
                 margin-top: 20px;
                 margin-bottom: 10px;
+            }
+
+            .settings-category-title button {
+                background-color: #ff5417;
+                color: white;
+                border: none;
+                padding: 5px 10px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 14px;
+                transition: background-color 0.25s ease;
+            }
+
+            .settings-category-title button:hover {
+                background-color: #ff9069;
             }
 
             .settings-container .settings-category-title:first-of-type:first-child {
@@ -101,8 +122,33 @@ class Settings {
             }
 
             .settings-category-separator {
-                border-top: 1px solid #3e3e3e;
-                margin-bottom: 10px;
+                border-top: 1px solid #ff5417;
+            }
+
+            .settings-category-separator:last-of-type {
+                display: none;
+            }
+
+            .settings-category-container.collapsed {
+                display: none;
+            }
+
+            .settings-modal::-webkit-scrollbar {
+                width: 12px;
+            }
+
+            .settings-modal::-webkit-scrollbar-track {
+                background: #2b2b2b;
+            }
+
+            .settings-modal::-webkit-scrollbar-thumb {
+                background-color: #ff5417;
+                border-radius: 10px;
+                border: 3px solid #2b2b2b;
+            }
+
+            .settings-modal::-webkit-scrollbar-thumb:hover {
+                background-color: #ff9069;
             }
         `;
         document.head.appendChild(style);
@@ -155,7 +201,13 @@ class Settings {
                 ${label}
             </label>
         `;
-        this.settingsContainer.appendChild(setting);
+
+        if (this.currentCategoryContainer) {
+            this.currentCategoryContainer.appendChild(setting);
+        } else {
+            this.settingsContainer.appendChild(setting);
+        }
+
         this.settings[id] = defaultValue;
         setting.querySelector('input')?.addEventListener('change', (event) => {
             this.settings[id] = (event.target as HTMLInputElement).checked;
@@ -171,7 +223,13 @@ class Settings {
                 <input type="text" id="${id}" value="${defaultValue}" />
             </label>
         `;
-        this.settingsContainer.appendChild(setting);
+
+        if (this.currentCategoryContainer) {
+            this.currentCategoryContainer.appendChild(setting);
+        } else {
+            this.settingsContainer.appendChild(setting);
+        }
+
         this.settings[id] = defaultValue;
         setting.querySelector('input')?.addEventListener('input', (event) => {
             this.settings[id] = (event.target as HTMLInputElement).value;
@@ -184,11 +242,24 @@ class Settings {
         categoryTitle.classList.add('settings-category-title');
         categoryTitle.innerText = title;
 
+        const toggleButton = document.createElement('button');
+        toggleButton.innerText = 'Toggle';
+        toggleButton.addEventListener('click', () => {
+            settingsContainer.classList.toggle('collapsed');
+        });
+
         const separator = document.createElement('div');
         separator.classList.add('settings-category-separator');
 
+        const settingsContainer = document.createElement('div');
+        settingsContainer.classList.add('settings-category-container');
+
+        categoryTitle.appendChild(toggleButton);
         this.settingsContainer.appendChild(categoryTitle);
+        this.settingsContainer.appendChild(settingsContainer);
         this.settingsContainer.appendChild(separator);
+
+        this.currentCategoryContainer = settingsContainer;
     }
 
     getSetting(id: string) {
