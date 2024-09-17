@@ -85,12 +85,11 @@ class Settings {
             }
 
             .settings-modal .close-button:hover {
-                background-color: #c82333;
+                background-color: #ff9069;
             }
 
             .settings-container label {
                 display: block;
-                margin-bottom: 10px;
             }
 
             .settings-container input[type="text"] {
@@ -105,6 +104,53 @@ class Settings {
 
             .settings-container input[type="checkbox"] {
                 accent-color: #ff5417;
+            }
+
+            .keybinding-setting {
+                margin-bottom: 10px;
+            }
+
+            .keybinding-input-container {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: nowrap;
+                border-radius: 4px;
+            }
+
+            .keybinding-tags {
+                display: flex;
+                flex-wrap: nowrap;
+                margin-right: 5px;
+            }
+
+            .keybinding-tag {
+                border: 1px solid #3e3e3e;
+                border-radius: 3px;
+                padding: 5px;
+                margin: 2px;
+                display: flex;
+                align-items: center;
+            }
+
+            .keybinding-remove {
+                background: none;
+                border: none;
+                margin-left: 5px;
+                cursor: pointer;
+                font-size: 14px;
+                color: #ff5417;
+            }
+
+            .keybinding-remove:hover {
+                color: red;
+            }
+
+            .keybinding-input-container input {
+                border: none;
+                outline: none;
+                flex-grow: 1;
+                width: 30px;
             }
 
             .settings-category-title {
@@ -298,6 +344,90 @@ class Settings {
         setting.querySelector('input')?.addEventListener('input', (event) => {
             this.settings[id] = (event.target as HTMLInputElement).value;
             this.saveSettings();
+        });
+    }
+
+    addKeyBindingSetting(id: string, label: string, defaultValue: string = "") {
+        const setting = document.createElement('div');
+        setting.classList.add('keybinding-setting');
+
+        const value = id in this.settings ? this.settings[id] : defaultValue;
+        let keys: string[] = value ? value.split(',').map((k: string) => k.trim()) : [];
+
+        setting.innerHTML = `
+            <label>${label}</label>
+            <div class="keybinding-input-container">
+                <div class="keybinding-tags" id="${id}-tags"></div>
+                <input type="text" id="${id}-input" placeholder="Press a key to add" />
+            </div>
+        `;
+
+        if (this.currentCategoryContainer) {
+            this.currentCategoryContainer.appendChild(setting);
+        } else {
+            this.settingsContainer.appendChild(setting);
+        }
+
+        if (!(id in this.settings)) {
+            this.settings[id] = defaultValue;
+        }
+
+        const tagsContainer = setting.querySelector(`#${id}-tags`) as HTMLDivElement;
+        const inputElement = setting.querySelector(`#${id}-input`) as HTMLInputElement;
+
+        const updateSettings = () => {
+            this.settings[id] = keys.join(', ');
+            this.saveSettings();
+        };
+
+        const renderKeys = () => {
+            tagsContainer.innerHTML = '';
+            keys.forEach((key, index) => {
+                const keyTag = document.createElement('span');
+                keyTag.classList.add('keybinding-tag');
+                keyTag.textContent = key;
+
+                const removeButton = document.createElement('button');
+                removeButton.classList.add('keybinding-remove');
+                removeButton.textContent = '×';
+                removeButton.addEventListener('click', () => {
+                    keys.splice(index, 1);
+                    renderKeys();
+                    updateSettings();
+                });
+
+                keyTag.appendChild(removeButton);
+                tagsContainer.appendChild(keyTag);
+            });
+        };
+
+        renderKeys();
+
+        inputElement.addEventListener('keydown', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const keyParts = [];
+            if (event.ctrlKey && event.key !== 'Control') keyParts.push('Ctrl');
+            if (event.shiftKey && event.key !== 'Shift') keyParts.push('Shift');
+            if (event.altKey && event.key !== 'Alt') keyParts.push('Alt');
+            if (event.metaKey && event.key !== 'Meta') keyParts.push('Meta');
+
+            if (!['Control', 'Shift', 'Alt', 'Meta'].includes(event.key)) {
+                keyParts.push(event.key);
+            } else if (keyParts.length === 0) {
+                return; // Ignore modifier-only keys
+            }
+
+            const keyCombination = keyParts.join('+');
+            if (keyCombination && !keys.includes(keyCombination)) {
+                keys.push(keyCombination);
+                renderKeys();
+                updateSettings();
+            }
+
+            // Clear the input field after capturing the key
+            inputElement.value = '';
         });
     }
 
