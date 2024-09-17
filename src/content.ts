@@ -166,16 +166,76 @@ class MangaNato {
     private logger = new Logger("Manganato");
     private progressBar = document.createElement("div");
     private totalPages = 0;
-    private scrollToImage!: (index: number, position: 'start' | 'center' | 'end' | 'nearest') => void;
+    static maxChapters = 50;
+    private images!: NodeListOf<HTMLImageElement>;
 
     constructor() {
+        this.initializeImages();
         this.addCss();
         this.adjustImageHeight();
         this.removeAdDivs();
         this.fixStyles();
+        this.scrollToSavedImage();
         this.addMangaButtons();
         this.addGeneralShortcuts();
         this.addMangaProgress();
+    }
+
+    static saveChapterToLocalStorage(mangaChapterKey: string, closestImageIndex: number) {
+        const savedChapters = JSON.parse(localStorage.getItem('savedChapters') || '[]');
+
+        if (!savedChapters.includes(mangaChapterKey)) {
+            if (savedChapters.length >= MangaNato.maxChapters) {
+                const oldestKey = savedChapters.shift();
+                localStorage.removeItem(oldestKey);
+            }
+            savedChapters.push(mangaChapterKey);
+            localStorage.setItem('savedChapters', JSON.stringify(savedChapters));
+        }
+
+        // Save the current page (closest image index) to localStorage
+        localStorage.setItem(mangaChapterKey, closestImageIndex.toString());
+    }
+
+    static getChapterFromLocalStorage(mangaChapterKey: string) {
+        return localStorage.getItem(mangaChapterKey);
+    }
+
+    static getMangaChapterKey() {
+        const url = window.location.href;
+        const regex = /manga-([a-zA-Z0-9]+)\/chapter-([0-9]+)/;
+        const match = url.match(regex);
+        if (match) {
+            return `manga-${match[1]}/chapter-${match[2]}`;
+        }
+    }
+
+    initializeImages() {
+        const pageDiv = document.querySelector(".container-chapter-reader");
+        if (!pageDiv) {
+            this.logger.log("Not on manga page.")
+            return;
+        }
+        this.images = pageDiv.querySelectorAll('img');
+        this.totalPages = this.images.length;
+    }
+
+    scrollToImage(index: number, position: 'start' | 'center' | 'end' | 'nearest') {
+        if (index >= 0 && index < this.totalPages) {
+            this.images[index].scrollIntoView({ behavior: 'smooth', block: position });
+            //closestImageIndex = index; // Update the current image index
+        }
+    }
+
+    scrollToSavedImage() {
+        const mangaChapterKey = MangaNato.getMangaChapterKey();
+        if (mangaChapterKey) {
+            const savedPage = MangaNato.getChapterFromLocalStorage(mangaChapterKey);
+            console.log(savedPage);
+            if (savedPage) {
+                this.scrollToImage(parseInt(savedPage), "start");
+            }
+        }
     }
 
     addCss() {
@@ -382,27 +442,10 @@ class MangaNato {
         let closestImageIndex = -1; // Keeps track of the current image index
         let scrollTimeout: number;
         const logger = this.logger;
-
-        // Get all images
-        const pageDiv = document.querySelector(".container-chapter-reader");
-        if (!pageDiv) {
-            logger.log("Not on manga page.")
-            return;
-        }
-        const images = pageDiv.querySelectorAll('img');
-        this.totalPages = images.length;
+        const images = this.images;
         logger.log(`Total images: ${this.totalPages}`, "img");
 
-        const navigationPanel = document.querySelectorAll(".panel-navigation")[1]
-
-        // Function to scroll to a specific image
-        function scrollToImage(index: number, position: 'start' | 'center' | 'end' | 'nearest') {
-            if (index >= 0 && index < images.length) {
-                images[index].scrollIntoView({ behavior: 'smooth', block: position });
-                closestImageIndex = index; // Update the current image index
-            }
-        }
-        this.scrollToImage = scrollToImage;
+        const navigationPanel = document.querySelectorAll(".panel-navigation")[1];
 
         function isNavigationPanelInView() {
             const navigationPanelRect = navigationPanel.getBoundingClientRect();
@@ -435,6 +478,12 @@ class MangaNato {
             });
 
             localUpdateMangaProgress(closestImageIndex);
+
+            const mangaChapterKey = MangaNato.getMangaChapterKey();
+            if (mangaChapterKey) {
+                MangaNato.saveChapterToLocalStorage(mangaChapterKey, closestImageIndex);
+            }
+
             if (shouldLog) {
                 logger.log(`Closest image index: ${closestImageIndex}`, "img");
             }
@@ -462,7 +511,7 @@ class MangaNato {
                 return;
             }
             if (keysPressed['Shift'] && leftKeys.includes(event.key)) {
-                scrollToImage(0, 'start');
+                this.scrollToImage(0, 'start');
                 findClosestImage();
                 return;
             }
@@ -525,7 +574,7 @@ class MangaNato {
             // If at top of page scroll to first image.
             if (window.scrollY <= 100) {
                 if (rightKeys.includes(event.key)) {
-                    scrollToImage(0, 'start');
+                    this.scrollToImage(0, 'start');
                     return;
                 }
             }
@@ -543,7 +592,7 @@ class MangaNato {
 
                 // Scroll to the next image (bottom)
                 if (closestImageIndex < images.length - 1) {
-                    scrollToImage(closestImageIndex + 1, 'end');
+                    this.scrollToImage(closestImageIndex + 1, 'end');
                 } else if (closestImageIndex == images.length - 1) {
                     navigationPanel.scrollIntoView({ behavior: 'smooth', block: "end" });
                 }
@@ -551,9 +600,9 @@ class MangaNato {
             if (leftKeys.includes(event.key)) {
                 // Scroll to the previous image (top)
                 if (closestImageIndex > 0) {
-                    scrollToImage(closestImageIndex - 1, 'start');
+                    this.scrollToImage(closestImageIndex - 1, 'start');
                 } else if (closestImageIndex == 0) {
-                    scrollToImage(closestImageIndex, 'start');
+                    this.scrollToImage(closestImageIndex, 'start');
                 }
             }
         });
