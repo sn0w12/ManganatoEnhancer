@@ -51,3 +51,5 @@ class ShortcutManager {
         this.shortcuts.push({ keys, action, condition });
     }
 }
+
+export { ShortcutManager };
