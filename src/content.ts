@@ -495,7 +495,7 @@ class MangaNato {
                     this.scrollToImage(closestImageIndex + 1, 'end');
                 } else if (closestImageIndex == images.length - 1) {
                     const behavior = this.settings.getSetting("smoothScrolling") ? 'smooth' : 'auto';
-                    navigationPanel.scrollIntoView({ behavior: 'smooth', block: "end" });
+                    navigationPanel.scrollIntoView({ behavior: behavior, block: "end" });
                 }
             }
             if (leftKeys.includes(event.key)) {
