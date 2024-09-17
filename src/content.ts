@@ -166,6 +166,7 @@ class MangaNato {
     private logger = new Logger("Manganato");
     private progressBar = document.createElement("div");
     private totalPages = 0;
+    private currentPage = -1;
     static maxChapters = 50;
     private images!: NodeListOf<HTMLImageElement>;
 
@@ -179,6 +180,7 @@ class MangaNato {
         this.addMangaButtons();
         this.addGeneralShortcuts();
         this.addMangaProgress();
+        this.addNavigationBoxes();
     }
 
     static saveChapterToLocalStorage(mangaChapterKey: string, closestImageIndex: number) {
@@ -275,8 +277,48 @@ class MangaNato {
 .page-rect:hover {
     background-color: #ff9069 !important;
 }
-        `;
+.navigation-box {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: 45vw;
+    background-color: rgba(0, 0, 0, 0);
+    z-index: 100;
+    cursor: pointer;
+}
+.navigation-box.left {
+    left: 30px;
+}
+.navigation-box.right {
+    right: 30px;
+}`;
         document.head.appendChild(style);
+    }
+
+    addNavigationBoxes() {
+        const leftBox = document.createElement('div');
+        leftBox.classList.add('navigation-box', 'left');
+        leftBox.addEventListener('click', () => this.emulateKeyPress('ArrowLeft'));
+
+        const rightBox = document.createElement('div');
+        rightBox.classList.add('navigation-box', 'right');
+        rightBox.addEventListener('click', () => this.emulateKeyPress('ArrowRight'));
+
+        document.body.appendChild(leftBox);
+        document.body.appendChild(rightBox);
+    }
+
+    emulateKeyPress(key: string) {
+        const event = new KeyboardEvent('keydown', {
+            key: key,
+            code: key,
+            keyCode: key === 'ArrowRight' ? 39 : 37,
+            which: key === 'ArrowRight' ? 39 : 37,
+            bubbles: true,
+            cancelable: true,
+            ctrlKey: true
+        });
+        document.dispatchEvent(event);
     }
 
     adjustImageHeight() {
@@ -290,12 +332,12 @@ class MangaNato {
             }
         });
 
-        if (allImagesBelowThreshold) {
-            images.forEach(img => img.style.height = '100vh');
-        }
-        else {
-            images.forEach(img => img.style.width = '450px');
-        }
+        const imageHeight = allImagesBelowThreshold ? '100vh' : '450px';
+        images.forEach(img => {
+            img.style.height = imageHeight;
+            img.style.zIndex = '10';
+            img.style.position = 'relative';
+        });
     }
 
     fixStyles() {
@@ -313,6 +355,14 @@ class MangaNato {
         const categoryDiv = document.querySelector<HTMLDivElement>(".pn-category-story-title");
         if (categoryDiv) {
             categoryDiv.style.width = "100%";
+        }
+
+        const containers = document.querySelectorAll<HTMLDivElement>(".container");
+        if (containers) {
+            containers.forEach(container => {
+                container.style.zIndex = "1000";
+                container.style.position = "relative";
+            });
         }
     }
 
@@ -426,6 +476,7 @@ class MangaNato {
     }
 
     updateMangaProgress(currentPage: number) {
+        this.currentPage = currentPage;
         for (let i = 0; i < this.totalPages; i++) {
             const pageRect = this.progressBar.children[i] as HTMLElement;
             if (pageRect) {
