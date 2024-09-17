@@ -32,7 +32,7 @@ jobs:
           mkdir -p manganato-enhancer
           cp -r dist manganato-enhancer/
           cp manifest.json manganato-enhancer/
-          cd manganato-enhancer && zip -r ../manganato-enhancer.zip *
+          cd manganato-enhancer && zip -r ../manganato-enhancer-${{ env.VERSION }}.zip *
 
       - name: Extract tag name
         id: extract_tag
@@ -41,7 +41,7 @@ jobs:
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: manganato-enhancer.zip # The ZIP file created in the previous step
+          artifacts: manganato-enhancer-${{ env.VERSION }}.zip # The ZIP file created in the previous step
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ env.TAG_NAME }}
           name: Release ${{ env.TAG_NAME }}
