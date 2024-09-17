@@ -6,6 +6,13 @@ class Settings {
     private settingsContainer: HTMLDivElement;
     private settings: { [key: string]: any } = {};
     private currentCategoryContainer: HTMLDivElement | null = null;
+    private keyMapping: { [key: string]: string } = {
+        'Control': 'Ctrl',
+        'ArrowUp': '▲',
+        'ArrowDown': '▼',
+        'ArrowLeft': '◄',
+        'ArrowRight': '►',
+    };
 
     constructor() {
         this.addCss();
@@ -202,7 +209,6 @@ class Settings {
             .keybinding-remove {
                 background: none;
                 border: none;
-                margin-left: 5px;
                 cursor: pointer;
                 font-size: 14px;
                 color: #ff5417;
@@ -457,7 +463,9 @@ class Settings {
             keys.forEach((key, index) => {
                 const keyTag = document.createElement('span');
                 keyTag.classList.add('keybinding-tag');
-                keyTag.textContent = key;
+
+                const keys = key.split('+').map((k: string) => this.keyMapping[k] || k);
+                keyTag.textContent = keys.join('+');
 
                 const removeButton = document.createElement('button');
                 removeButton.classList.add('keybinding-remove');
