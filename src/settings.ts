@@ -20,6 +20,40 @@ class Settings {
         document.body.appendChild(this.settingsButton);
         document.body.appendChild(this.settingsModal);
         document.body.appendChild(this.overlay);
+
+        this.addGradientEventListeners();
+    }
+
+    private addGradientEventListeners() {
+        const settingsModal = this.settingsModal; // Assuming this.settingsModal is your modal element
+        const settingsContainer = this.settingsContainer; // Assuming this.settingsContainer is your scrollable content
+
+        function updateGradients() {
+            const scrollTop = settingsContainer.scrollTop;
+            const scrollHeight = settingsContainer.scrollHeight;
+            const clientHeight = settingsContainer.clientHeight;
+
+            const fadeDistance = 50; // Adjust this value as needed
+
+            // Calculate top gradient opacity
+            const topOpacity = Math.min(scrollTop / fadeDistance, 1);
+
+            // Calculate bottom gradient opacity
+            const bottomOpacity = Math.min(
+                (scrollHeight - scrollTop - clientHeight) / fadeDistance,
+                1
+            );
+
+            // Set CSS variables to control the opacity of the pseudo-elements
+            settingsModal.style.setProperty('--modal-top-gradient-opacity', topOpacity.toString());
+            settingsModal.style.setProperty('--modal-bottom-gradient-opacity', bottomOpacity.toString());
+        }
+
+        // Initialize the gradients when the modal opens
+        updateGradients();
+
+        // Add scroll event listener
+        settingsContainer.addEventListener('scroll', updateGradients);
     }
 
     private addCss() {
@@ -55,10 +89,15 @@ class Settings {
                 display: none;
             }
 
+            .settings-container {
+                overflow-y: auto;
+                max-height: calc(90vh - 40px - 40px);
+            }
+
             .settings-modal {
                 position: fixed;
                 max-height: 90%;
-                overflow-y: auto;
+                overflow-y: hidden;
                 top: 50%;
                 left: 50%;
                 transform: translate(-50%, -50%);
@@ -72,6 +111,31 @@ class Settings {
                 width: -webkit-fill-available;
             }
 
+            .settings-modal::before,
+            .settings-modal::after {
+                opacity: 0;
+                content: '';
+                position: absolute;
+                left: 0;
+                right: 0;
+                height: 30px; /* Adjust the height as needed */
+                pointer-events: none;
+                z-index: 1002; /* Ensure it is above the modal content */
+                transition: opacity 0.3s ease;
+            }
+
+            .settings-modal::before {
+                opacity: var(--modal-top-gradient-opacity, 0);
+                top: 19px;
+                background: linear-gradient(to bottom, rgba(43, 43, 43, 1), rgba(43, 43, 43, 0));
+            }
+
+            .settings-modal::after {
+                opacity: var(--modal-bottom-gradient-opacity, 0);
+                bottom: 40px;
+                background: linear-gradient(to top, rgba(43, 43, 43, 1), rgba(43, 43, 43, 0));
+            }
+
             .settings-modal .close-button {
                 background-color: #ff5417;
                 width: 100%;
@@ -82,6 +146,8 @@ class Settings {
                 cursor: pointer;
                 font-size: 14px;
                 float: right;
+                z-index: 1003;
+                position: relative;
             }
 
             .settings-modal .close-button:hover {
@@ -228,21 +294,21 @@ class Settings {
                 text-decoration: underline;
             }
 
-            .settings-modal::-webkit-scrollbar {
+            .settings-container::-webkit-scrollbar {
                 width: 12px;
             }
 
-            .settings-modal::-webkit-scrollbar-track {
+            .settings-container::-webkit-scrollbar-track {
                 background: #2b2b2b;
             }
 
-            .settings-modal::-webkit-scrollbar-thumb {
+            .settings-container::-webkit-scrollbar-thumb {
                 background-color: #ff5417;
                 border-radius: 10px;
                 border: 3px solid #2b2b2b;
             }
 
-            .settings-modal::-webkit-scrollbar-thumb:hover {
+            .settings-container::-webkit-scrollbar-thumb:hover {
                 background-color: #ff9069;
             }
         `;
@@ -281,11 +347,17 @@ class Settings {
     private showModal() {
         this.settingsModal.style.display = 'block';
         this.overlay.style.display = 'block';
+
+        document.body.style.overflow = 'hidden';
+        document.body.style.height = '100%';
     }
 
     private hideModal() {
         this.settingsModal.style.display = 'none';
         this.overlay.style.display = 'none';
+
+        document.body.style.overflow = '';
+        document.body.style.height = '';
     }
 
     private saveSettings() {
@@ -485,8 +557,7 @@ class Settings {
             });
 
             titleContainer.appendChild(infoIcon);
-
-            window.addEventListener('scroll', () => {
+            this.settingsContainer.addEventListener('scroll', () => {
                 if (tooltip.style.display === 'inline-block') {
                     const rect = infoIcon.getBoundingClientRect();
                     tooltip.style.left = `${rect.right + 5 + window.scrollX}px`;
