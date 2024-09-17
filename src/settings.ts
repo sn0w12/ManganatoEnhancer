@@ -8,12 +8,12 @@ class Settings {
 
     constructor() {
         this.addCss();
+        this.loadSettings();
         this.settingsButton = this.createSettingsButton();
         this.settingsModal = this.createSettingsModal();
         this.closeButton = this.settingsModal.querySelector('.close-button') as HTMLButtonElement;
         this.settingsContainer = this.settingsModal.querySelector('.settings-container') as HTMLDivElement;
 
-        this.loadSettings();
         this.addEventListeners();
         document.body.appendChild(this.settingsButton);
         document.body.appendChild(this.settingsModal);
@@ -99,8 +99,12 @@ class Settings {
                 align-items: center;
                 font-size: 18px;
                 font-weight: bold;
-                margin-top: 20px;
+                margin-top: 10px;
                 margin-bottom: 10px;
+            }
+
+            .settings-container .settings-category-title:first-of-type:first-child {
+                margin-top: 00px;
             }
 
             .settings-category-title button {
@@ -116,10 +120,6 @@ class Settings {
 
             .settings-category-title button:hover {
                 background-color: #ff9069;
-            }
-
-            .settings-container .settings-category-title:first-of-type:first-child {
-                margin-top: 10px;
             }
 
             .settings-category-separator {
@@ -186,19 +186,22 @@ class Settings {
     }
 
     private saveSettings() {
+        console.log(this.settings);
         localStorage.setItem('settings', JSON.stringify(this.settings));
     }
 
     private loadSettings() {
         const savedSettings = JSON.parse(localStorage.getItem('settings') || '{}');
         this.settings = savedSettings;
+        console.log(this.settings);
     }
 
     addCheckboxSetting(id: string, label: string, defaultValue: boolean) {
         const setting = document.createElement('div');
+        const value = id in this.settings ? this.settings[id] : defaultValue;
         setting.innerHTML = `
             <label>
-                <input type="checkbox" id="${id}" ${defaultValue ? 'checked' : ''} />
+                <input type="checkbox" id="${id}" ${value ? 'checked' : ''} />
                 ${label}
             </label>
         `;
@@ -218,10 +221,11 @@ class Settings {
 
     addTextInputSetting(id: string, label: string, defaultValue: string) {
         const setting = document.createElement('div');
+        const value = id in this.settings ? this.settings[id] : defaultValue;
         setting.innerHTML = `
             <label>
                 ${label}
-                <input type="text" id="${id}" value="${defaultValue}" />
+                <input type="text" id="${id}" value="${value}" />
             </label>
         `;
 
@@ -234,6 +238,7 @@ class Settings {
         this.settings[id] = defaultValue;
         setting.querySelector('input')?.addEventListener('input', (event) => {
             this.settings[id] = (event.target as HTMLInputElement).value;
+            console.log(this.settings[id]);
             this.saveSettings();
         });
     }
@@ -244,9 +249,10 @@ class Settings {
         categoryTitle.innerText = title;
 
         const toggleButton = document.createElement('button');
-        toggleButton.innerText = 'Toggle';
+        toggleButton.innerText = 'Close';
         toggleButton.addEventListener('click', () => {
             settingsContainer.classList.toggle('collapsed');
+            toggleButton.innerText = settingsContainer.classList.contains('collapsed') ? 'Open' : 'Close';
         });
 
         const separator = document.createElement('div');
