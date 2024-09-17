@@ -173,7 +173,19 @@ class MangaNato {
 
         const rightBox = document.createElement('div');
         rightBox.classList.add('navigation-box', 'right');
-        rightBox.addEventListener('click', () => this.scrollToImage(this.currentPage + 1, 'start'));
+        rightBox.addEventListener('click', () => {
+            if (this.currentPage + 1 < this.totalPages) {
+                this.scrollToImage(this.currentPage + 1, 'start')
+                return;
+            } else {
+                const nextChapterButton = document.querySelector<HTMLButtonElement>(".navi-change-chapter-btn-next");
+                if (nextChapterButton) {
+                    nextChapterButton.click();
+                } else {
+                    this.logger.popup("No Next Chapter", "warning");
+                }
+            }
+        });
 
         document.body.appendChild(leftBox);
         document.body.appendChild(rightBox);
