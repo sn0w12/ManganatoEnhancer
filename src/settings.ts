@@ -186,14 +186,12 @@ class Settings {
     }
 
     private saveSettings() {
-        console.log(this.settings);
         localStorage.setItem('settings', JSON.stringify(this.settings));
     }
 
     private loadSettings() {
         const savedSettings = JSON.parse(localStorage.getItem('settings') || '{}');
         this.settings = savedSettings;
-        console.log(this.settings);
     }
 
     addCheckboxSetting(id: string, label: string, defaultValue: boolean) {
@@ -212,7 +210,9 @@ class Settings {
             this.settingsContainer.appendChild(setting);
         }
 
-        this.settings[id] = defaultValue;
+        if (!(id in this.settings)) {
+            this.settings[id] = defaultValue;
+        }
         setting.querySelector('input')?.addEventListener('change', (event) => {
             this.settings[id] = (event.target as HTMLInputElement).checked;
             this.saveSettings();
@@ -235,10 +235,11 @@ class Settings {
             this.settingsContainer.appendChild(setting);
         }
 
-        this.settings[id] = defaultValue;
+        if (!(id in this.settings)) {
+            this.settings[id] = defaultValue;
+        }
         setting.querySelector('input')?.addEventListener('input', (event) => {
             this.settings[id] = (event.target as HTMLInputElement).value;
-            console.log(this.settings[id]);
             this.saveSettings();
         });
     }
