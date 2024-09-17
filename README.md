@@ -6,8 +6,10 @@ A simple chrome extension made to improve the manganato experience. Contains vis
 
 # Shortcuts
 
-- `>`: **Right Arrow** | **"D"**.
-- `<`: **Left Arrow** | **"A"**.
+Shortcut buttons can be configured in the settings.
+
+- `>`: **Right Arrow**.
+- `<`: **Left Arrow**.
 
 ## General Shortcuts
 

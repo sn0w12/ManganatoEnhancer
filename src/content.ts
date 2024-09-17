@@ -162,15 +162,198 @@ class Logger {
     }
 }
 
+class Settings {
+    private settingsButton: HTMLButtonElement;
+    private settingsModal: HTMLDivElement;
+    private closeButton: HTMLButtonElement;
+    private settingsContainer: HTMLDivElement;
+    private settings: { [key: string]: any } = {};
+
+    constructor() {
+        this.addCss();
+        this.settingsButton = this.createSettingsButton();
+        this.settingsModal = this.createSettingsModal();
+        this.closeButton = this.settingsModal.querySelector('.close-button') as HTMLButtonElement;
+        this.settingsContainer = this.settingsModal.querySelector('.settings-container') as HTMLDivElement;
+
+        this.loadSettings();
+        this.addEventListeners();
+        document.body.appendChild(this.settingsButton);
+        document.body.appendChild(this.settingsModal);
+    }
+
+    private addCss() {
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .settings-button {
+                position: fixed;
+                top: 10px;
+                left: 15px;
+                z-index: 1000;
+                background-color: #ff5417;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 16px;
+                transition: background-color 0.25s ease;
+            }
+
+            .settings-button:hover {
+                background-color: #ff9069;
+            }
+
+            .settings-modal {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background-color: #2b2b2b;
+                color: #d0d0d0;
+                padding: 20px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+                z-index: 1001;
+                display: none;
+                border-radius: 10px;
+                width: 300px;
+            }
+
+            .settings-modal h2 {
+                margin-top: 0;
+            }
+
+            .settings-modal .close-button {
+                background-color: #dc3545;
+                color: white;
+                border: none;
+                padding: 5px 10px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 14px;
+                float: right;
+            }
+
+            .settings-modal .close-button:hover {
+                background-color: #c82333;
+            }
+
+            .settings-container {
+                margin-top: 5px;
+                padding-top: 5px;
+                border-top: 1px solid #3e3e3e;
+            }
+
+            .settings-container label {
+                display: block;
+                margin-bottom: 10px;
+            }
+
+            .settings-container input[type="text"] {
+                width: 100%;
+                padding: 5px;
+                box-sizing: border-box;
+                background-color: #2b2b2b;
+                color: #d0d0d0;
+                border: 1px solid #3e3e3e;
+                border-radius: 5px;
+            }
+
+            .settings-container input[type="checkbox"] {
+                accent-color: #ff5417;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    private createSettingsButton(): HTMLButtonElement {
+        const button = document.createElement('button');
+        button.innerText = 'Settings';
+        button.classList.add('settings-button');
+        return button;
+    }
+
+    private createSettingsModal(): HTMLDivElement {
+        const modal = document.createElement('div');
+        modal.classList.add('settings-modal');
+        modal.innerHTML = `
+            <h2>Settings</h2>
+            <div class="settings-container"></div>
+            <br />
+            <button class="close-button">Close</button>
+        `;
+        return modal;
+    }
+
+    private addEventListeners() {
+        this.settingsButton.addEventListener('click', () => this.showModal());
+        this.closeButton.addEventListener('click', () => this.hideModal());
+    }
+
+    private showModal() {
+        this.settingsModal.style.display = 'block';
+    }
+
+    private hideModal() {
+        this.settingsModal.style.display = 'none';
+    }
+
+    private saveSettings() {
+        localStorage.setItem('settings', JSON.stringify(this.settings));
+    }
+
+    private loadSettings() {
+        const savedSettings = JSON.parse(localStorage.getItem('settings') || '{}');
+        this.settings = savedSettings;
+    }
+
+    addCheckboxSetting(id: string, label: string, defaultValue: boolean) {
+        const setting = document.createElement('div');
+        setting.innerHTML = `
+            <label>
+                <input type="checkbox" id="${id}" ${defaultValue ? 'checked' : ''} />
+                ${label}
+            </label>
+        `;
+        this.settingsContainer.appendChild(setting);
+        this.settings[id] = defaultValue;
+        setting.querySelector('input')?.addEventListener('change', (event) => {
+            this.settings[id] = (event.target as HTMLInputElement).checked;
+            this.saveSettings();
+        });
+    }
+
+    addTextInputSetting(id: string, label: string, defaultValue: string) {
+        const setting = document.createElement('div');
+        setting.innerHTML = `
+            <label>
+                ${label}
+                <input type="text" id="${id}" value="${defaultValue}" />
+            </label>
+        `;
+        this.settingsContainer.appendChild(setting);
+        this.settings[id] = defaultValue;
+        setting.querySelector('input')?.addEventListener('input', (event) => {
+            this.settings[id] = (event.target as HTMLInputElement).value;
+            this.saveSettings();
+        });
+    }
+
+    getSetting(id: string) {
+        return this.settings[id];
+    }
+}
+
 class MangaNato {
     private logger = new Logger("Manganato");
     private progressBar = document.createElement("div");
     private totalPages = 0;
-    private currentPage = -1;
-    static maxChapters = 50;
     private images!: NodeListOf<HTMLImageElement>;
+    private settings: Settings = new Settings();
+    static maxChapters = 50;
 
     constructor() {
+        this.addSettings();
         this.initializeImages();
         this.addCss();
         this.adjustImageHeight();
@@ -212,6 +395,12 @@ class MangaNato {
         }
     }
 
+    private addSettings() {
+        this.settings.addCheckboxSetting('smoothScrolling', 'Smooth Scrolling', false);
+        this.settings.addTextInputSetting('nextKeys', 'Next Page Keys', 'ArrowRight');
+        this.settings.addTextInputSetting('lastKeys', 'Last Page Keys', 'ArrowLeft');
+    }
+
     initializeImages() {
         const pageDiv = document.querySelector(".container-chapter-reader");
         if (!pageDiv) {
@@ -223,8 +412,9 @@ class MangaNato {
     }
 
     scrollToImage(index: number, position: 'start' | 'center' | 'end' | 'nearest') {
+        const behavior = this.settings.getSetting("smoothScrolling") ? 'smooth' : 'auto';
         if (index >= 0 && index < this.totalPages) {
-            this.images[index].scrollIntoView({ behavior: 'smooth', block: position });
+            this.images[index].scrollIntoView({ behavior: behavior, block: position });
             //closestImageIndex = index; // Update the current image index
         }
     }
@@ -233,7 +423,6 @@ class MangaNato {
         const mangaChapterKey = MangaNato.getMangaChapterKey();
         if (mangaChapterKey) {
             const savedPage = MangaNato.getChapterFromLocalStorage(mangaChapterKey);
-            console.log(savedPage);
             if (savedPage) {
                 this.scrollToImage(parseInt(savedPage), "start");
             }
@@ -281,12 +470,13 @@ class MangaNato {
     position: fixed;
     top: 0;
     bottom: 0;
-    width: 45vw;
+    width: 40vw;
     background-color: rgba(0, 0, 0, 0);
     z-index: 100;
     cursor: pointer;
 }
 .navigation-box.left {
+    width: 30vw;
     left: 30px;
 }
 .navigation-box.right {
@@ -476,7 +666,6 @@ class MangaNato {
     }
 
     updateMangaProgress(currentPage: number) {
-        this.currentPage = currentPage;
         for (let i = 0; i < this.totalPages; i++) {
             const pageRect = this.progressBar.children[i] as HTMLElement;
             if (pageRect) {
@@ -544,8 +733,8 @@ class MangaNato {
         findClosestImage();
 
         let keysPressed: { [key: string]: boolean } = {};
-        const rightKeys = ["ArrowRight", "d"];
-        const leftKeys = ["ArrowLeft", "a"];
+        const rightKeys = this.settings.getSetting("nextKeys").split(",").map((item: string) => item.trim());
+        const leftKeys = this.settings.getSetting("lastKeys").split(",").map((item: string) => item.trim());
 
         window.addEventListener('keyup', (event) => {
             delete keysPressed[event.key]; // Remove the key from the pressed keys list
@@ -557,7 +746,8 @@ class MangaNato {
 
             // Key combinations
             if (keysPressed['Shift'] && rightKeys.includes(event.key)) {
-                navigationPanel.scrollIntoView({ behavior: 'smooth', block: "end" });
+                const behavior = this.settings.getSetting("smoothScrolling") ? 'smooth' : 'auto';
+                navigationPanel.scrollIntoView({ behavior: behavior, block: "end" });
                 findClosestImage();
                 return;
             }
