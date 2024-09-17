@@ -290,7 +290,7 @@ class Settings {
             infoIcon.addEventListener('mouseover', (event) => {
                 const rect = (event.target as HTMLElement).getBoundingClientRect();
                 tooltip.style.left = `${rect.right + 5}px`;
-                tooltip.style.top = `${rect.top}px`;
+                tooltip.style.top = `${rect.top - 3}px`;
                 tooltip.style.display = 'block';
             });
 
