@@ -134,6 +134,31 @@ class Settings {
                 display: none;
             }
 
+            .info-icon {
+                cursor: pointer;
+                padding: 0 8px 2px;
+                margin-left: 5px;
+                border: 2px solid #ff5417;
+                border-radius: 50%;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 14px;
+                background-color: #2b2b2b;
+                color: #ff5417;
+            }
+
+            .tooltip {
+                display: none;
+                position: absolute;
+                background-color: #333;
+                color: #fff;
+                padding: 5px;
+                border-radius: 5px;
+                white-space: nowrap;
+                z-index: 1002;
+            }
+
             .settings-modal::-webkit-scrollbar {
                 width: 12px;
             }
@@ -244,10 +269,37 @@ class Settings {
         });
     }
 
-    addCategory(title: string) {
+    addCategory(title: string, tooltipText: string = "") {
         const categoryTitle = document.createElement('div');
         categoryTitle.classList.add('settings-category-title');
-        categoryTitle.innerText = title;
+
+        const titleContainer = document.createElement('div');
+        titleContainer.innerText = title;
+
+        if (tooltipText !== "") {
+            const infoIcon = document.createElement('span');
+            infoIcon.innerHTML = 'ℹ️';
+            infoIcon.classList.add('info-icon');
+
+            const tooltip = document.createElement('div');
+            tooltip.classList.add('tooltip');
+            tooltip.innerText = tooltipText;
+
+            document.body.appendChild(tooltip);
+
+            infoIcon.addEventListener('mouseover', (event) => {
+                const rect = (event.target as HTMLElement).getBoundingClientRect();
+                tooltip.style.left = `${rect.right + 5}px`;
+                tooltip.style.top = `${rect.top}px`;
+                tooltip.style.display = 'block';
+            });
+
+            infoIcon.addEventListener('mouseout', () => {
+                tooltip.style.display = 'none';
+            });
+
+            titleContainer.appendChild(infoIcon);
+        }
 
         const toggleButton = document.createElement('button');
         toggleButton.innerText = 'Close';
@@ -262,6 +314,7 @@ class Settings {
         const settingsContainer = document.createElement('div');
         settingsContainer.classList.add('settings-category-container');
 
+        categoryTitle.appendChild(titleContainer);
         categoryTitle.appendChild(toggleButton);
         this.settingsContainer.appendChild(categoryTitle);
         this.settingsContainer.appendChild(settingsContainer);
