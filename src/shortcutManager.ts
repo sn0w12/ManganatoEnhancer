@@ -10,22 +10,60 @@ class ShortcutManager {
     }
 
     private normalizeKey(event: KeyboardEvent): string {
-        const keys = [];
+        const modifiers = [];
 
         // Treat Control and Meta as interchangeable
-        if (event.ctrlKey || event.metaKey) keys.push('Control');
-        if (event.shiftKey) keys.push('Shift');
-        if (event.altKey) keys.push('Alt');
+        if (event.ctrlKey || event.metaKey) modifiers.push('Control');
+        if (event.shiftKey) modifiers.push('Shift');
+        if (event.altKey) modifiers.push('Alt');
 
-        // Exclude modifier-only keys
-        if (!['Control', 'Shift', 'Alt', 'Meta'].includes(event.key)) {
-            keys.push(event.key);
-        } else if (keys.length === 0) {
-            // Ignore events where only a modifier key is pressed
-            return '';
+        // Sort modifiers to ensure consistent order
+        modifiers.sort();
+
+        let key = event.key;
+
+        // Ignore modifier-only keys
+        if (['Control', 'Shift', 'Alt', 'Meta'].includes(key)) {
+            if (modifiers.length === 0) {
+                // Ignore events where only a modifier key is pressed
+                return '';
+            }
+            key = ''; // No key, only modifiers
         }
 
-        return keys.join('+');
+        return [...modifiers, key].filter(Boolean).join('+');
+    }
+
+    private normalizeKeyCombination(keyCombo: string): string {
+        const parts = keyCombo.split('+').map(part => part.trim());
+        const modifiers = [];
+        let key = '';
+
+        for (const part of parts) {
+            switch (part.toLowerCase()) {
+                case 'control':
+                case 'ctrl':
+                    modifiers.push('Control');
+                    break;
+                case 'shift':
+                    modifiers.push('Shift');
+                    break;
+                case 'alt':
+                    modifiers.push('Alt');
+                    break;
+                case 'meta':
+                    modifiers.push('Control'); // Treat Meta as Control
+                    break;
+                default:
+                    key = part;
+                    break;
+            }
+        }
+
+        // Sort modifiers to ensure consistent order
+        modifiers.sort();
+
+        return [...modifiers, key].filter(Boolean).join('+');
     }
 
     private handleKeyDown(event: KeyboardEvent) {
@@ -44,10 +82,18 @@ class ShortcutManager {
         }
     }
 
-    public registerShortcut(keys: string | string[], action: () => void, condition?: () => boolean) {
+    public registerShortcut(
+        keys: string | string[],
+        action: () => void,
+        condition?: () => boolean
+    ) {
         if (typeof keys === 'string') {
             keys = [keys];
         }
+
+        // Normalize keys
+        keys = keys.map(keyCombo => this.normalizeKeyCombination(keyCombo));
+
         this.shortcuts.push({ keys, action, condition });
     }
 }
