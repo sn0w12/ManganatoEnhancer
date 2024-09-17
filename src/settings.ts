@@ -1,6 +1,7 @@
 class Settings {
     private settingsButton: HTMLButtonElement;
     private settingsModal: HTMLDivElement;
+    private overlay: HTMLDivElement;
     private closeButton: HTMLButtonElement;
     private settingsContainer: HTMLDivElement;
     private settings: { [key: string]: any } = {};
@@ -11,12 +12,14 @@ class Settings {
         this.loadSettings();
         this.settingsButton = this.createSettingsButton();
         this.settingsModal = this.createSettingsModal();
+        this.overlay = this.createOverlay();
         this.closeButton = this.settingsModal.querySelector('.close-button') as HTMLButtonElement;
         this.settingsContainer = this.settingsModal.querySelector('.settings-container') as HTMLDivElement;
 
         this.addEventListeners();
         document.body.appendChild(this.settingsButton);
         document.body.appendChild(this.settingsModal);
+        document.body.appendChild(this.overlay);
     }
 
     private addCss() {
@@ -41,6 +44,17 @@ class Settings {
                 background-color: #ff9069;
             }
 
+            .settings-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 1000; /* Ensure it is below the modal */
+                display: none;
+            }
+
             .settings-modal {
                 position: fixed;
                 max-height: 90%;
@@ -55,7 +69,7 @@ class Settings {
                 z-index: 1001;
                 display: none;
                 border-radius: 10px;
-                width: 300px;
+                width: -webkit-fill-available;
             }
 
             .settings-modal .close-button {
@@ -150,13 +164,22 @@ class Settings {
 
             .tooltip {
                 display: none;
+                opacity: 0;
                 position: absolute;
                 background-color: #333;
                 color: #fff;
                 padding: 5px;
                 border-radius: 5px;
-                white-space: nowrap;
+                white-space: normal;
+                max-width: 300px;
+                overflow-wrap: break-word;
                 z-index: 1002;
+                transition: opacity 0.5s ease;
+            }
+
+            .tooltip a {
+                color: #ff5417;
+                text-decoration: underline;
             }
 
             .settings-modal::-webkit-scrollbar {
@@ -197,17 +220,26 @@ class Settings {
         return modal;
     }
 
+    private createOverlay(): HTMLDivElement {
+        const overlay = document.createElement('div');
+        overlay.classList.add('settings-overlay');
+        return overlay;
+    }
+
     private addEventListeners() {
         this.settingsButton.addEventListener('click', () => this.showModal());
         this.closeButton.addEventListener('click', () => this.hideModal());
+        this.overlay.addEventListener('click', () => this.hideModal());
     }
 
     private showModal() {
         this.settingsModal.style.display = 'block';
+        this.overlay.style.display = 'block';
     }
 
     private hideModal() {
         this.settingsModal.style.display = 'none';
+        this.overlay.style.display = 'none';
     }
 
     private saveSettings() {
@@ -283,22 +315,54 @@ class Settings {
 
             const tooltip = document.createElement('div');
             tooltip.classList.add('tooltip');
-            tooltip.innerText = tooltipText;
+            tooltip.innerHTML = tooltipText; // Use innerHTML to allow HTML content
 
             document.body.appendChild(tooltip);
 
-            infoIcon.addEventListener('mouseover', (event) => {
+            let hideTimeout: number;
+
+            const showTooltip = (event: MouseEvent) => {
+                clearTimeout(hideTimeout);
                 const rect = (event.target as HTMLElement).getBoundingClientRect();
-                tooltip.style.left = `${rect.right + 5}px`;
-                tooltip.style.top = `${rect.top - 3}px`;
-                tooltip.style.display = 'block';
+                tooltip.style.left = `${rect.right + 5 + window.scrollX}px`;
+                tooltip.style.top = `${rect.top - 3 + window.scrollY}px`;
+                tooltip.style.display = 'inline-block';
+                tooltip.style.opacity = '1';
+            };
+
+            const hideTooltip = () => {
+                tooltip.style.opacity = '0';
+                hideTimeout = window.setTimeout(() => {
+                    tooltip.style.display = 'none';
+                }, 300); // Delay to allow moving to the tooltip
+            };
+
+            infoIcon.addEventListener('mouseenter', showTooltip);
+            infoIcon.addEventListener('mouseleave', (event) => {
+                if (!tooltip.contains(event.relatedTarget as Node)) {
+                    hideTooltip();
+                }
             });
 
-            infoIcon.addEventListener('mouseout', () => {
-                tooltip.style.display = 'none';
+            tooltip.addEventListener('mouseenter', () => {
+                clearTimeout(hideTimeout);
+                tooltip.style.opacity = '1';
+            });
+            tooltip.addEventListener('mouseleave', (event) => {
+                if (!infoIcon.contains(event.relatedTarget as Node)) {
+                    hideTooltip();
+                }
             });
 
             titleContainer.appendChild(infoIcon);
+
+            window.addEventListener('scroll', () => {
+                if (tooltip.style.display === 'inline-block') {
+                    const rect = infoIcon.getBoundingClientRect();
+                    tooltip.style.left = `${rect.right + 5 + window.scrollX}px`;
+                    tooltip.style.top = `${rect.top - 3 + window.scrollY}px`;
+                }
+            });
         }
 
         const toggleButton = document.createElement('button');
