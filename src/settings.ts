@@ -281,11 +281,15 @@ class Settings {
                 display: none;
             }
 
-            .combo-setting {
+            .custom-setting {
                 display: flex !important;
                 align-items: center;
                 margin-bottom: 10px;
                 gap: 5px;
+            }
+
+            .custom-setting p {
+                white-space: nowrap;
             }
 
             .combo-container select {
@@ -454,8 +458,8 @@ class Settings {
         const setting = document.createElement('div');
         const value = id in this.settings ? this.settings[id] : defaultValue;
         setting.innerHTML = `
-            <label>
-                ${label}
+            <label class="custom-setting">
+                <p>${label}</p>
                 <input type="text" id="${id}" value="${value}" />
             </label>
         `;
@@ -579,7 +583,7 @@ class Settings {
         const value = id in this.settings ? this.settings[id] : defaultValue;
 
         setting.innerHTML = `
-            <label class="combo-setting">
+            <label class="custom-setting">
                 ${label}
                 <div class="combo-container">
                     <select id="${id}-select">
