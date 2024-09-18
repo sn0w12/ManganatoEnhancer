@@ -4,6 +4,26 @@
 
 A simple chrome extension made to improve the manganato experience. Contains visual changes such as making manga pages take up the entire screen and quality of life tweaks like letting you go through a manga with the arrow keys.
 
+# Features
+
+## Bookmark Search
+
+You can search through your bookmark without having to look through each page individually.
+
+![Search](https://i.imgur.com/o5gyKtf.png)
+
+## Export Bookmarks
+
+You can export all your bookmarks as a `json` file.
+
+## Go Through Manga Page by Page
+
+Instead of scrolling through manga you can go through page by page with either shortcuts or by clicking on the page.
+
+## Customizable Settings
+
+![Settings](https://i.imgur.com/wwcL2HR.png)
+
 # Shortcuts
 
 Shortcut buttons can be configured in the settings.
