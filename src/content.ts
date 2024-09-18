@@ -95,6 +95,7 @@ class MangaNato {
         this.settings.addCheckboxSetting('showPageCount', 'Show Page Count', false, () => {
             this.updatePageCount();
         });
+        this.settings.addCheckboxSetting('searchImages', 'Show Search Images', true);
         this.settings.addSeparator();
         this.settings.addComboSetting('readingDirection', 'Reading Direction', ['Left to Right', 'Right to Left'], 'Left to Right', () => {
             this.addNavigationBoxes();
@@ -132,6 +133,10 @@ class MangaNato {
     }
 
     addBookmarkSearchBar() {
+        if (!window.location.href.includes("bookmark")) {
+            return;
+        }
+
         const sideContainer = document.querySelector(".container-main-right");
         const topView = sideContainer?.children[1];
 
@@ -216,6 +221,13 @@ class MangaNato {
         bookmarks.forEach((bookmark) => {
             const listItem = document.createElement("li");
             listItem.classList.add("bookmark-item");
+
+            if (this.settings.getSetting("searchImages")) {
+                const image = document.createElement("img");
+                image.src = bookmark.image;
+                image.alt = bookmark.storyname;
+                listItem.appendChild(image);
+            }
 
             const link = document.createElement("a");
             link.href = bookmark.link_chapter_now;
@@ -369,6 +381,8 @@ class MangaNato {
     padding: 8px 12px;
     cursor: pointer;
     border-bottom: 1px solid #ccc;
+    display: flex;
+    align-items: center;
 }
 
 .bookmark-item:last-child {
@@ -387,6 +401,14 @@ class MangaNato {
 
 .bookmark-item a:hover {
     text-decoration: none;
+}
+
+.bookmark-item img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    margin-right: 10px;
+    border-radius: 5px;
 }
 
 /* Style for the "No matching bookmarks found" message */
