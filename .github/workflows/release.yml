@@ -13,6 +13,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Extract tag name
+        id: extract_tag
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -32,16 +36,12 @@ jobs:
           mkdir -p manganato-enhancer
           cp -r dist manganato-enhancer/
           cp manifest.json manganato-enhancer/
-          cd manganato-enhancer && zip -r ../manganato-enhancer-${{ env.VERSION }}.zip *
-
-      - name: Extract tag name
-        id: extract_tag
-        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          cd manganato-enhancer && zip -r ../manganato-enhancer-${{ env.TAG_NAME }}.zip *
 
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: manganato-enhancer-${{ env.VERSION }}.zip # The ZIP file created in the previous step
+          artifacts: manganato-enhancer-${{ env.TAG_NAME }}.zip # The ZIP file created in the previous step
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ env.TAG_NAME }}
           name: Release ${{ env.TAG_NAME }}
