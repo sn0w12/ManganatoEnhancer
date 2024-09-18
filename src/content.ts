@@ -531,7 +531,7 @@ class MangaNato {
     }
 
     updatePageCount() {
-        if (this.settings.getSetting("showPageCount") === false) {
+        if (this.settings.getSetting("showPageCount") === false || this.totalPages === 0) {
             this.pageCount.style.display = "none";
             return;
         }
