@@ -499,6 +499,9 @@ class MangaNato {
 
         // Find the closest image when the script runs
         findClosestImage();
+        const chapterCondition = () => {
+            return window.location.href.includes("chapter");
+        };
 
         // Initialize the ShortcutManager
         const shortcutManager = this.shortcutManager;
@@ -519,12 +522,12 @@ class MangaNato {
             const behavior = this.settings.getSetting("smoothScrolling") ? "smooth" : "auto";
             navigationPanel.scrollIntoView({ behavior: behavior, block: "end" });
             findClosestImage();
-        });
+        }, chapterCondition);
 
         shortcutManager.registerShortcut(firstPageKeys, () => {
             this.scrollToImage(0, "start");
             findClosestImage();
-        });
+        }, chapterCondition);
 
         shortcutManager.registerShortcut(nextChapterKeys, () => {
             const nextChapterButton = navigationPanel.querySelector<HTMLButtonElement>(
@@ -535,7 +538,7 @@ class MangaNato {
             } else {
                 this.logger.popup("No Next Chapter", "warning");
             }
-        });
+        }, chapterCondition);
 
         shortcutManager.registerShortcut(previousChapterKeys, () => {
             const lastChapterButton = navigationPanel.querySelector<HTMLButtonElement>(
@@ -546,7 +549,7 @@ class MangaNato {
             } else {
                 this.logger.popup("No Previous Chapter", "warning");
             }
-        });
+        }, chapterCondition);
 
         shortcutManager.registerShortcut(serverKeys , () => {
             const serverButtons = document.querySelectorAll<HTMLElement>(".server-image-btn");
@@ -558,7 +561,7 @@ class MangaNato {
                 }
             }
             this.logger.popup("No other server found.", "warning");
-        });
+        }, chapterCondition);
 
         shortcutManager.registerShortcut(bookmarkKeys, () => {
             const currentUrl = window.location.href;
@@ -583,14 +586,14 @@ class MangaNato {
             } else {
                 this.logger.popup("No valid URL found.", "warning");
             }
-        });
+        }, chapterCondition);
 
         shortcutManager.registerShortcut(
             nextPageKeys,
             () => {
                 this.scrollToImage(0, "start");
             },
-            () => window.scrollY <= 100
+            () => window.scrollY <= 100 && chapterCondition()
         );
 
         shortcutManager.registerShortcut(nextPageKeys, () => {
@@ -613,7 +616,7 @@ class MangaNato {
                 const behavior = this.settings.getSetting("smoothScrolling") ? "smooth" : "auto";
                 navigationPanel.scrollIntoView({ behavior: behavior, block: "end" });
             }
-        });
+        }, chapterCondition);
 
         shortcutManager.registerShortcut(previousPageKeys, () => {
             // Scroll to the previous image (top)
@@ -622,7 +625,7 @@ class MangaNato {
             } else if (closestImageIndex === 0) {
                 this.scrollToImage(closestImageIndex, "start");
             }
-        });
+        }, chapterCondition);
 
         const onScrollStop = () => {
             clearTimeout(scrollTimeout);
