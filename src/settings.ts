@@ -224,7 +224,8 @@ class Settings {
                 display: block;
             }
 
-            .settings-container input[type="text"] {
+            .settings-container input[type="text"],
+            .settings-container input[type="number"] {
                 width: 100%;
                 padding: 5px;
                 box-sizing: border-box;
@@ -503,13 +504,13 @@ class Settings {
      * @param label - The label to display next to the text input.
      * @param defaultValue - The default value for the text input if the setting is not already defined.
      */
-    addTextInputSetting(id: string, label: string, defaultValue: string) {
+    addTextInputSetting(id: string, label: string, defaultValue: string, type: string = 'text') {
         const setting = document.createElement('div');
         const value = id in this.settings ? this.settings[id] : defaultValue;
         setting.innerHTML = `
             <label class="custom-setting">
                 <p>${label}</p>
-                <input type="text" id="${id}" value="${value}" />
+                <input type="${type}" id="${id}" value="${value}" />
             </label>
         `;
 

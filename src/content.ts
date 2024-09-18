@@ -12,6 +12,7 @@ class MangaNato {
     private settings: Settings = new Settings();
     private images!: NodeListOf<HTMLImageElement>;
     private navigationPanel!: Element;
+    private isStrip = false;
     static maxChapters = 50;
 
     constructor() {
@@ -62,7 +63,8 @@ class MangaNato {
     private addSettings() {
         this.settings.addCategory('General Settings');
         this.settings.addSeparator();
-        this.settings.addCheckboxSetting('smoothScrolling', 'Smooth Scrolling', false);
+        this.settings.addCheckboxSetting('smoothScrolling', 'Manga Smooth Scrolling', false);
+        this.settings.addCheckboxSetting('stripSmoothScrolling', 'Strip Smooth Scrolling', true);
         this.settings.addCheckboxSetting('scrollToNav', 'Scroll to Navigation After Chapter', false);
         this.settings.addCheckboxSetting('goToNextChapter', 'Go to Next Chapter After Last Page', true);
         this.settings.addCheckboxSetting('showPageCount', 'Show Page Count', false, () => {
@@ -74,6 +76,7 @@ class MangaNato {
         });
         this.settings.addTextInputSetting('pageHeight', 'Manga Page Height', '100vh');
         this.settings.addTextInputSetting('stripWidth', 'Strip Page Width', '450px');
+        this.settings.addTextInputSetting('stripScroll', 'Strip Scroll Amount', '750', "number");
 
         this.settings.addCategory('Shortcut Keys', '', false);
         this.settings.addSeparator();
@@ -241,14 +244,45 @@ class MangaNato {
             return;
         }
 
+        if (this.isStrip) {
+            const stripBehavior = this.settings.getSetting("stripSmoothScrolling") ? "smooth" : "auto";
+            const scrollAmount = parseInt(this.settings.getSetting("stripScroll"));
+            window.scrollBy({
+                top: scrollAmount,
+                left: 0,
+                behavior: stripBehavior,
+            });
+            return;
+        }
+
+        const behavior = this.settings.getSetting("smoothScrolling") ? "smooth" : "auto";
         // Scroll to the next image (bottom)
         if (this.currentPage < this.totalPages - 1) {
             this.scrollToImage(this.currentPage + 1, "end");
         } else if (this.currentPage === this.totalPages - 1 && this.settings.getSetting("scrollToNav")) {
-            const behavior = this.settings.getSetting("smoothScrolling") ? "smooth" : "auto";
             this.navigationPanel.scrollIntoView({ behavior: behavior, block: "end" });
         } else {
             this.goToNextChapter();
+        }
+    }
+
+    goToPreviousPage() {
+        const behavior = this.settings.getSetting("stripSmoothScrolling") ? "smooth" : "auto";
+        if (this.isStrip) {
+            const scrollAmount = parseInt(this.settings.getSetting("stripScroll"));
+            window.scrollBy({
+                top: -scrollAmount,
+                left: 0,
+                behavior: behavior,
+            });
+            return;
+        }
+
+        // Scroll to the previous image (top)
+        if (this.currentPage > 0) {
+            this.scrollToImage(this.currentPage - 1, "start");
+        } else if (this.currentPage === 0) {
+            this.scrollToImage(this.currentPage, "start");
         }
     }
 
@@ -265,12 +299,12 @@ class MangaNato {
 
         if (readingDirection) {
             // Left to Right reading direction
-            leftBox.addEventListener('click', () => this.scrollToImage(this.currentPage - 1, 'start'));
+            leftBox.addEventListener('click', () => this.goToPreviousPage());
             rightBox.addEventListener('click', () => this.goToNextPage());
         } else {
             // Right to Left reading direction
             leftBox.addEventListener('click', () => this.goToNextPage());
-            rightBox.addEventListener('click', () => this.scrollToImage(this.currentPage - 1, 'start'));
+            rightBox.addEventListener('click', () => this.goToPreviousPage());
         }
 
         document.body.appendChild(leftBox);
@@ -298,6 +332,10 @@ class MangaNato {
             img.style.zIndex = '10';
             img.style.position = 'relative';
         });
+
+        if (imageOrientation === "width") {
+            this.isStrip = true;
+        }
     }
 
     fixStyles() {
@@ -720,12 +758,7 @@ class MangaNato {
         }, chapterCondition);
 
         shortcutManager.registerShortcut(previousPageKeys, () => {
-            // Scroll to the previous image (top)
-            if (closestImageIndex > 0) {
-                this.scrollToImage(closestImageIndex - 1, "start");
-            } else if (closestImageIndex === 0) {
-                this.scrollToImage(closestImageIndex, "start");
-            }
+            this.goToPreviousPage();
         }, chapterCondition);
 
         const onScrollStop = () => {
