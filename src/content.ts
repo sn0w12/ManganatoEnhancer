@@ -1,17 +1,23 @@
 import { Logger } from "./logger";
 import { Settings } from "./settings";
 import { ShortcutManager } from "./shortcutManager";
+import { BookmarkManager } from "./bookmarkManager";
 
 class MangaNato {
     private logger = new Logger("Manganato");
+    private bookmarkManager = new BookmarkManager();
     private shortcutManager = new ShortcutManager();
+    private settings = new Settings();
+
     private progressBar = document.createElement("div");
     private pageCount = document.createElement("div");
+
     private totalPages = 0;
     private currentPage = -1;
-    private settings: Settings = new Settings();
+
     private images!: NodeListOf<HTMLImageElement>;
     private navigationPanel!: Element;
+
     private isStrip = false;
     static maxChapters = 50;
 
@@ -30,6 +36,13 @@ class MangaNato {
 
         this.logger.log("MangaNato Enhancer initialized.", "info");
         this.logger.log(localStorage, "", "dev");
+        this.bookmarkManager.getAllBookmarks().then(bookmarks => {
+            if (bookmarks) {
+                this.logger.log('Bookmarks Fetched.', 'info', 'success', bookmarks);
+            } else {
+                this.logger.log('No bookmarks found or an error occurred.', 'info', 'error');
+            }
+        });
     }
 
     static saveChapterToLocalStorage(mangaChapterKey: string, closestImageIndex: number) {
