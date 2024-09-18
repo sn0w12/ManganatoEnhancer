@@ -1,4 +1,4 @@
-type LogType = "error" | "warning" | "success" | "info";
+type LogType = "error" | "warning" | "success" | "info" | "dev";
 type categoryType = "img" | "info" | "";
 
 /**
@@ -16,6 +16,7 @@ class Logger {
         warning: " background-color: #ff5417;",
         success: " background-color: #1c8a52;",
         info: " background-color: #7dc4ca;",
+        dev: " background-color: #bc42f5;",
     };
     private categoryColorMap: { [key in categoryType]: string } = {
         img: " background-color: #f15e55;",
@@ -91,6 +92,10 @@ class Logger {
      * and the detailed message (if provided) is logged within the group. A stack trace is also included.
      */
     log(message: any, category: categoryType = "", type: LogType = "info", detailMessage: string = "") {
+        if (type === "dev" && process.env.NODE_ENV === "production") {
+            return;
+        }
+
         const generalCss = 'color: white; padding: 2px 6px 2px 6px; '
         const typeColor = this.typeColorMap[type];
         const typeTextColor = Logger.getTextColorBasedOnBg(typeColor)
