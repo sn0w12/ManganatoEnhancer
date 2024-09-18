@@ -281,6 +281,25 @@ class Settings {
                 display: none;
             }
 
+            .combo-setting {
+                display: flex !important;
+                align-items: center;
+                margin-bottom: 10px;
+                gap: 5px;
+            }
+
+            .combo-container select {
+                padding: 5px;
+                border-radius: 5px;
+                background-color: #2b2b2b;
+                color: #d0d0d0;
+                border: 1px solid #3e3e3e;
+            }
+
+            .combo-container select option:checked {
+                background-color: #ff5417;
+            }
+
             .info-icon {
                 cursor: pointer;
                 padding: 0 8px 2px;
@@ -552,6 +571,41 @@ class Settings {
 
             // Clear the input field after capturing the key
             inputElement.value = '';
+        });
+    }
+
+    addComboSetting(id: string, label: string, options: string[], defaultValue: string, onChange: Function = () => {}) {
+        const setting = document.createElement('div');
+        const value = id in this.settings ? this.settings[id] : defaultValue;
+
+        setting.innerHTML = `
+            <label class="combo-setting">
+                ${label}
+                <div class="combo-container">
+                    <select id="${id}-select">
+                        ${options.map(option => `<option value="${option}">${option}</option>`).join('')}
+                    </select>
+                </div>
+            </label>
+        `;
+
+        if (this.currentCategoryContainer) {
+            this.currentCategoryContainer.appendChild(setting);
+        } else {
+            this.settingsContainer.appendChild(setting);
+        }
+
+        const selectElement = setting.querySelector(`#${id}-select`) as HTMLSelectElement;
+        selectElement.value = value;
+
+        // Event listener for select change
+        selectElement.addEventListener('change', (event) => {
+            const selectedValue = (event.target as HTMLSelectElement).value;
+            if (options.includes(selectedValue)) {
+                this.settings[id] = selectedValue;
+                this.saveSettings();
+                onChange();
+            }
         });
     }
 

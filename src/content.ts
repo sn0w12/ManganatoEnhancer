@@ -9,8 +9,9 @@ class MangaNato {
     private pageCount = document.createElement("div");
     private totalPages = 0;
     private currentPage = -1;
-    private images!: NodeListOf<HTMLImageElement>;
     private settings: Settings = new Settings();
+    private images!: NodeListOf<HTMLImageElement>;
+    private navigationPanel!: Element;
     static maxChapters = 50;
 
     constructor() {
@@ -63,6 +64,9 @@ class MangaNato {
         this.settings.addCheckboxSetting('smoothScrolling', 'Smooth Scrolling', false);
         this.settings.addCheckboxSetting('showPageCount', 'Show Page Count', false, () => {
             this.updatePageCount();
+        });
+        this.settings.addComboSetting('readingDirection', 'Reading Direction', ['Left to Right', 'Right to Left'], 'Left to Right', () => {
+            this.addNavigationBoxes();
         });
 
         this.settings.addCategory('Shortcut Keys', '', false);
@@ -163,11 +167,13 @@ class MangaNato {
     cursor: pointer;
 }
 .navigation-box.left {
-    width: 30vw;
     left: 30px;
 }
 .navigation-box.right {
     right: 30px;
+}
+.navigation-box.sub {
+    width: 30vw;
 }
 .page-count {
     position: fixed;
@@ -186,26 +192,52 @@ class MangaNato {
         document.head.appendChild(style);
     }
 
+    getReadingDirection() {
+        return this.settings.getSetting("readingDirection") === "Left to Right" ? true : false;
+    }
+
+    goToNextPage() {
+        if (this.isNavigationPanelInView()) {
+            const nextChapterButton = this.navigationPanel.querySelector<HTMLButtonElement>(
+                ".navi-change-chapter-btn-next"
+            );
+            if (nextChapterButton) {
+                nextChapterButton.click();
+            } else {
+                this.logger.popup("No Next Chapter", "warning");
+            }
+            return;
+        }
+
+        // Scroll to the next image (bottom)
+        if (this.currentPage < this.totalPages - 1) {
+            this.scrollToImage(this.currentPage + 1, "end");
+        } else if (this.currentPage === this.totalPages - 1) {
+            const behavior = this.settings.getSetting("smoothScrolling") ? "smooth" : "auto";
+            this.navigationPanel.scrollIntoView({ behavior: behavior, block: "end" });
+        }
+    }
+
     addNavigationBoxes() {
+        const existingBoxes = document.querySelectorAll('.navigation-box');
+        existingBoxes.forEach(box => box.remove());
+        const readingDirection = this.getReadingDirection();
+
         const leftBox = document.createElement('div');
-        leftBox.classList.add('navigation-box', 'left');
-        leftBox.addEventListener('click', () => this.scrollToImage(this.currentPage - 1, 'start'));
+        leftBox.classList.add('navigation-box', readingDirection ? 'sub' : 'main', 'left');
 
         const rightBox = document.createElement('div');
-        rightBox.classList.add('navigation-box', 'right');
-        rightBox.addEventListener('click', () => {
-            if (this.currentPage + 1 < this.totalPages) {
-                this.scrollToImage(this.currentPage + 1, 'start')
-                return;
-            } else {
-                const nextChapterButton = document.querySelector<HTMLButtonElement>(".navi-change-chapter-btn-next");
-                if (nextChapterButton) {
-                    nextChapterButton.click();
-                } else {
-                    this.logger.popup("No Next Chapter", "warning");
-                }
-            }
-        });
+        rightBox.classList.add('navigation-box', readingDirection ? 'main' : 'sub', 'right');
+
+        if (readingDirection) {
+            // Left to Right reading direction
+            leftBox.addEventListener('click', () => this.scrollToImage(this.currentPage - 1, 'start'));
+            rightBox.addEventListener('click', () => this.goToNextPage());
+        } else {
+            // Right to Left reading direction
+            leftBox.addEventListener('click', () => this.goToNextPage());
+            rightBox.addEventListener('click', () => this.scrollToImage(this.currentPage - 1, 'start'));
+        }
 
         document.body.appendChild(leftBox);
         document.body.appendChild(rightBox);
@@ -441,6 +473,16 @@ class MangaNato {
         }
     }
 
+    isNavigationPanelInView() {
+        if (this.navigationPanel) {
+            const navigationPanelRect = this.navigationPanel.getBoundingClientRect();
+            return (
+                navigationPanelRect.top < window.innerHeight && navigationPanelRect.bottom > 0
+            );
+        }
+        return false;
+    };
+
     addMangaButtons() {
         let closestImageIndex = -1; // Keeps track of the current image index
         let scrollTimeout: number;
@@ -448,18 +490,7 @@ class MangaNato {
         const images = this.images;
         logger.log(`Total images: ${this.totalPages}`, "img");
 
-        const navigationPanel = document.querySelectorAll(".panel-navigation")[1];
-
-        const isNavigationPanelInView = () => {
-            if (navigationPanel) {
-                const navigationPanelRect = navigationPanel.getBoundingClientRect();
-                return (
-                    navigationPanelRect.top < window.innerHeight && navigationPanelRect.bottom > 0
-                );
-            }
-            return false;
-        };
-
+        this.navigationPanel = document.querySelectorAll(".panel-navigation")[1];
         const localUpdateMangaProgress = this.updateMangaProgress.bind(this);
 
         // Function to find the closest image initially
@@ -471,7 +502,7 @@ class MangaNato {
             let closestDistance = Infinity;
 
             // If the navigation panel is in view, set closestImageIndex to the last image
-            if (isNavigationPanelInView()) {
+            if (this.isNavigationPanelInView()) {
                 closestImageIndex = images.length;
                 if (shouldLog) {
                     logger.log(`Outside of reader.`, "info");
@@ -523,7 +554,7 @@ class MangaNato {
         // Register shortcuts
         shortcutManager.registerShortcut(lastPageKeys, () => {
             const behavior = this.settings.getSetting("smoothScrolling") ? "smooth" : "auto";
-            navigationPanel.scrollIntoView({ behavior: behavior, block: "end" });
+            this.navigationPanel.scrollIntoView({ behavior: behavior, block: "end" });
             findClosestImage();
         }, chapterCondition);
 
@@ -533,7 +564,7 @@ class MangaNato {
         }, chapterCondition);
 
         shortcutManager.registerShortcut(nextChapterKeys, () => {
-            const nextChapterButton = navigationPanel.querySelector<HTMLButtonElement>(
+            const nextChapterButton = this.navigationPanel.querySelector<HTMLButtonElement>(
                 ".navi-change-chapter-btn-next"
             );
             if (nextChapterButton) {
@@ -544,7 +575,7 @@ class MangaNato {
         }, chapterCondition);
 
         shortcutManager.registerShortcut(previousChapterKeys, () => {
-            const lastChapterButton = navigationPanel.querySelector<HTMLButtonElement>(
+            const lastChapterButton = this.navigationPanel.querySelector<HTMLButtonElement>(
                 ".navi-change-chapter-btn-prev"
             );
             if (lastChapterButton) {
@@ -600,25 +631,7 @@ class MangaNato {
         );
 
         shortcutManager.registerShortcut(nextPageKeys, () => {
-            if (isNavigationPanelInView()) {
-                const nextChapterButton = navigationPanel.querySelector<HTMLButtonElement>(
-                    ".navi-change-chapter-btn-next"
-                );
-                if (nextChapterButton) {
-                    nextChapterButton.click();
-                } else {
-                    this.logger.popup("No Next Chapter", "warning");
-                }
-                return;
-            }
-
-            // Scroll to the next image (bottom)
-            if (closestImageIndex < images.length - 1) {
-                this.scrollToImage(closestImageIndex + 1, "end");
-            } else if (closestImageIndex === images.length - 1) {
-                const behavior = this.settings.getSetting("smoothScrolling") ? "smooth" : "auto";
-                navigationPanel.scrollIntoView({ behavior: behavior, block: "end" });
-            }
+            this.goToNextPage();
         }, chapterCondition);
 
         shortcutManager.registerShortcut(previousPageKeys, () => {
