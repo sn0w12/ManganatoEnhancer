@@ -540,7 +540,7 @@ class MangaNato {
         }
 
         const containers = document.querySelectorAll<HTMLDivElement>(".container");
-        if (containers) {
+        if (containers && window.location.href.includes("chapter")) {
             containers.forEach(container => {
                 container.style.zIndex = "1000";
                 container.style.position = "relative";
