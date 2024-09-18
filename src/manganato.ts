@@ -70,6 +70,9 @@ class Manganato {
             this.chapterHandler.updatePageCount();
         });
         this.settings.addCheckboxSetting('searchImages', 'Show Search Images', true);
+        this.settings.addCheckboxSetting('showNavigationBoxes', 'Show Navigation Boxes', false, () => {
+            this.chapterHandler.addNavigationBoxes();
+        });;
         this.settings.addSeparator();
         this.settings.addComboSetting('readingDirection', 'Reading Direction', ['Left to Right', 'Right to Left'], 'Left to Right', () => {
             this.chapterHandler.addNavigationBoxes();

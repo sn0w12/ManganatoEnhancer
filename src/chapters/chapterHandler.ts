@@ -203,6 +203,14 @@ class ChapterHandler {
         const rightBox = document.createElement('div');
         rightBox.classList.add('navigation-box', readingDirection ? 'main' : 'sub', 'right');
 
+        if (this.settings.getSetting("showNavigationBoxes")) {
+            leftBox.style.background = 'rgba(0, 0, 0, 0.2)';
+            rightBox.style.background = 'rgba(0, 0, 0, 0.2)';
+        } else {
+            leftBox.style.background = 'none';
+            rightBox.style.background = 'none';
+        }
+
         if (readingDirection) {
             // Left to Right reading direction
             leftBox.addEventListener('click', () => this.pageHandler.goToPreviousPage());
