@@ -91,7 +91,7 @@ class Logger {
      * the message is logged using `console.error`. Otherwise, the message is logged using `console.groupCollapsed`,
      * and the detailed message (if provided) is logged within the group. A stack trace is also included.
      */
-    log(message: any, category: categoryType = "", type: LogType = "info", detailMessage: string = "") {
+    log(message: any, category: categoryType = "", type: LogType = "info", detailMessage: any = "") {
         if (type === "dev" && process.env.NODE_ENV === "production") {
             return;
         }
