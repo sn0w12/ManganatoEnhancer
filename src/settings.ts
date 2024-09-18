@@ -280,7 +280,7 @@ class Settings {
                 color: #ff5417;
             }
 
-            .tooltip {
+            .settings-tooltip {
                 display: none;
                 opacity: 0;
                 position: absolute;
@@ -295,7 +295,7 @@ class Settings {
                 transition: opacity 0.5s ease;
             }
 
-            .tooltip a {
+            .settings-tooltip a {
                 color: #ff5417;
                 text-decoration: underline;
             }
@@ -375,6 +375,13 @@ class Settings {
         this.settings = savedSettings;
     }
 
+    /**
+     * Adds a checkbox setting to the settings container.
+     *
+     * @param id - The unique identifier for the checkbox setting.
+     * @param label - The label text to display next to the checkbox.
+     * @param defaultValue - The default checked state of the checkbox.
+     */
     addCheckboxSetting(id: string, label: string, defaultValue: boolean) {
         const setting = document.createElement('div');
         const value = id in this.settings ? this.settings[id] : defaultValue;
@@ -400,6 +407,13 @@ class Settings {
         });
     }
 
+    /**
+     * Adds a text input setting to the settings container.
+     *
+     * @param id - The unique identifier for the setting.
+     * @param label - The label to display next to the text input.
+     * @param defaultValue - The default value for the text input if the setting is not already defined.
+     */
     addTextInputSetting(id: string, label: string, defaultValue: string) {
         const setting = document.createElement('div');
         const value = id in this.settings ? this.settings[id] : defaultValue;
@@ -425,6 +439,19 @@ class Settings {
         });
     }
 
+    /**
+     * Adds a key binding setting to the settings UI.
+     *
+     * @param id - The unique identifier for the key binding setting.
+     * @param label - The label to display for the key binding setting.
+     * @param defaultValue - The default value for the key binding setting, defaults to an empty string.
+     *
+     * This function creates a new key binding setting element and appends it to the settings container.
+     * It initializes the setting with the provided default value or the existing value from the settings.
+     * The user can add key combinations by pressing keys, which are displayed as tags.
+     * Each tag has a remove button to delete the key combination.
+     * The settings are updated and saved whenever a key combination is added or removed.
+     */
     addKeyBindingSetting(id: string, label: string, defaultValue: string = "") {
         const setting = document.createElement('div');
         setting.classList.add('keybinding-setting');
@@ -511,6 +538,16 @@ class Settings {
         });
     }
 
+    /**
+     * Adds a new category to the settings container.
+     *
+     * @param title - The title of the category.
+     * @param tooltipText - Optional. The text to display in the tooltip. Defaults to an empty string.
+     * @param defaultOpen - Optional. Whether the category should be open by default. Defaults to true.
+     *
+     * This method creates a new category with a title and an optional tooltip. The category can be toggled open or closed.
+     * If a tooltip text is provided, an info icon will be displayed next to the title, and hovering over the icon will show the tooltip.
+     */
     addCategory(title: string, tooltipText: string = "", defaultOpen: boolean = true) {
         const categoryTitle = document.createElement('div');
         categoryTitle.classList.add('settings-category-title');
@@ -524,7 +561,7 @@ class Settings {
             infoIcon.classList.add('info-icon');
 
             const tooltip = document.createElement('div');
-            tooltip.classList.add('tooltip');
+            tooltip.classList.add('settings-tooltip');
             tooltip.innerHTML = tooltipText; // Use innerHTML to allow HTML content
 
             document.body.appendChild(tooltip);
@@ -601,6 +638,12 @@ class Settings {
         this.currentCategoryContainer = settingsContainer;
     }
 
+    /**
+     * Retrieves the value of a setting by its identifier.
+     *
+     * @param id - The unique identifier of the setting to retrieve.
+     * @returns The value of the setting associated with the given identifier.
+     */
     getSetting(id: string) {
         return this.settings[id];
     }

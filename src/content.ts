@@ -248,6 +248,13 @@ class MangaNato {
 
         // Helper functions
         const navigateTo = (url: string) => {
+            if (window.location.href === url) {
+                return;
+            }
+            if (!url.startsWith("http")) {
+                this.logger.log("Invalid URL", "", "error");
+                return;
+            }
             window.location.href = url;
         };
 
@@ -395,16 +402,22 @@ class MangaNato {
         const navigationPanel = document.querySelectorAll(".panel-navigation")[1];
 
         const isNavigationPanelInView = () => {
-            const navigationPanelRect = navigationPanel.getBoundingClientRect();
-            return (
-                navigationPanelRect.top < window.innerHeight && navigationPanelRect.bottom > 0
-            );
+            if (navigationPanel) {
+                const navigationPanelRect = navigationPanel.getBoundingClientRect();
+                return (
+                    navigationPanelRect.top < window.innerHeight && navigationPanelRect.bottom > 0
+                );
+            }
+            return false;
         };
 
         const localUpdateMangaProgress = this.updateMangaProgress.bind(this);
 
         // Function to find the closest image initially
         const findClosestImage = (shouldLog = true) => {
+            if (!images) {
+                return;
+            }
             const maxDistance = 200;
             let closestDistance = Infinity;
 
