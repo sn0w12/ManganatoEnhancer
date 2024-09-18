@@ -49,7 +49,6 @@ class Settings {
                 userOptions.appendChild(this.settingsButton);
             }
         }
-        console.log(userOptions);
 
         this.addEventListeners();
         document.body.appendChild(this.settingsModal);
