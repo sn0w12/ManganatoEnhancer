@@ -24,6 +24,8 @@ class MangaNato {
         this.addGeneralShortcuts();
         this.addMangaProgress();
         this.addNavigationBoxes();
+
+        this.logger.log("MangaNato Enhancer initialized.", "info");
     }
 
     static saveChapterToLocalStorage(mangaChapterKey: string, closestImageIndex: number) {

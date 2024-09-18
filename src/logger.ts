@@ -28,7 +28,7 @@ class Logger {
         this.addCss();
     }
 
-    addCss() {
+    private addCss() {
         const style = document.createElement('style');
         style.innerHTML = `
 .popup {
@@ -116,14 +116,6 @@ class Logger {
         }
         console.trace();
         console.groupEnd();
-    }
-
-    getTotalPopupHeight() {
-        let totalHeight = 0;
-        this.popups.forEach(cachedPopup => {
-            totalHeight += cachedPopup.offsetHeight + 10;
-        });
-        return totalHeight;
     }
 
     /**
