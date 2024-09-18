@@ -455,8 +455,6 @@ class MangaNato {
         const bookmarkKeys = this.settings.getSetting("bookmarkKeys").split(",").map((key: string) => key.trim());
         const serverKeys = this.settings.getSetting("serverKeys").split(",").map((key: string) => key.trim());
 
-        console.log(nextPageKeys, previousPageKeys, lastPageKeys, firstPageKeys, nextChapterKeys, previousChapterKeys, bookmarkKeys, serverKeys);
-
         // Register shortcuts
         shortcutManager.registerShortcut(lastPageKeys, () => {
             const behavior = this.settings.getSetting("smoothScrolling") ? "smooth" : "auto";
@@ -514,7 +512,6 @@ class MangaNato {
                         url: url,
                     },
                     (response) => {
-                        console.log(response?.success);
                         if (response?.success === 1) {
                             this.logger.popup("Bookmarked!", "success");
                         } else if (response?.success === 2) {
