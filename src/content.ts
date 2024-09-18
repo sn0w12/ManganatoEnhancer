@@ -29,6 +29,7 @@ class MangaNato {
         this.addNavigationBoxes();
 
         this.logger.log("MangaNato Enhancer initialized.", "info");
+        this.logger.log(localStorage, "", "dev");
     }
 
     static saveChapterToLocalStorage(mangaChapterKey: string, closestImageIndex: number) {
@@ -287,6 +288,9 @@ class MangaNato {
     }
 
     addNavigationBoxes() {
+        if (!window.location.href.includes("chapter")) {
+            return;
+        }
         const existingBoxes = document.querySelectorAll('.navigation-box');
         existingBoxes.forEach(box => box.remove());
         const readingDirection = this.getReadingDirection();
