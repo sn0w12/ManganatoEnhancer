@@ -2,6 +2,7 @@ import { Logger } from "./logger";
 import { Settings } from "./settings";
 import { ShortcutManager } from "./shortcutManager";
 import { BookmarkManager } from "./bookmarkManager";
+import Fuse from 'fuse.js';
 
 class MangaNato {
     private logger = new Logger("Manganato");
@@ -21,6 +22,9 @@ class MangaNato {
     private isStrip = false;
     static maxChapters = 50;
 
+    private bookmarks: any[] | undefined;
+    private fuse!: Fuse<any>;
+
     constructor() {
         this.addSettings();
         this.initializeImages();
@@ -33,12 +37,19 @@ class MangaNato {
         this.addGeneralShortcuts();
         this.addMangaProgress();
         this.addNavigationBoxes();
+        this.addBookmarkSearchBar();
 
         this.logger.log("MangaNato Enhancer initialized.", "info");
         this.logger.log(localStorage, "", "dev");
         this.bookmarkManager.getAllBookmarks().then(bookmarks => {
             if (bookmarks) {
                 this.logger.log('Bookmarks Fetched.', 'info', 'success', bookmarks);
+                this.bookmarks = bookmarks;
+                const options = {
+                    keys: ['storyname'],
+                    threshold: 0.4, // Adjust for sensitivity
+                };
+                this.fuse = new Fuse(this.bookmarks, options);
             } else {
                 this.logger.log('No bookmarks found or an error occurred.', 'info', 'error');
             }
@@ -118,6 +129,103 @@ class MangaNato {
         this.settings.addKeyBindingSetting('previousBookmarkPageKeys', 'Previous Page', 'Control+ArrowLeft');
         this.settings.addKeyBindingSetting('lastBookmarkPageKeys', 'Last Page', 'Control+Shift+ArrowRight');
         this.settings.addKeyBindingSetting('firstBookmarkPageKeys', 'First Page', 'Control+Shift+ArrowLeft');
+    }
+
+    addBookmarkSearchBar() {
+        const sideContainer = document.querySelector(".container-main-right");
+        const topView = sideContainer?.children[1];
+
+        const searchBody = document.createElement("div");
+        searchBody.classList.add("panel-topview");
+
+        const searchHeader = document.createElement("h2");
+        searchHeader.textContent = "Search Bookmarks";
+        searchHeader.classList.add("panel-topview-title");
+        searchHeader.style.width = "100%";
+
+        const searchBar = document.createElement("input");
+        searchBar.type = "text";
+        searchBar.placeholder = "Search...";
+        searchBar.classList.add("custom-search-bar");
+
+        const resultsContainer = document.createElement("div");
+        resultsContainer.classList.add("bookmark-search-results-dropdown");
+        resultsContainer.style.display = "none"; // Initially hidden
+
+        // Event listeners
+        searchBar.addEventListener("input", async (event) => {
+            const query = searchBar.value.trim().toLowerCase();
+
+            if (query === "") {
+                // Hide modal if search is empty
+                resultsContainer.style.display = "none";
+                return;
+            }
+
+            if (!this.bookmarks || this.bookmarks.length === 0) {
+                // Show placeholder and fetch bookmarks
+                resultsContainer.innerHTML = "<p>Fetching bookmarks...</p>";
+                resultsContainer.style.display = "block";
+                return;
+            }
+
+            if (this.bookmarks.length === 0) {
+                // No bookmarks found after fetching
+                resultsContainer.innerHTML = "<p>No bookmarks found.</p>";
+                resultsContainer.style.display = "block";
+                return;
+            }
+
+            // Filter bookmarks based on the query
+            /*
+            const filteredBookmarks = this.bookmarks.filter((bookmark) =>
+                bookmark.storyname.toLowerCase().includes(query)
+            );
+            */
+
+            const fuseResults = this.fuse.search(query);
+            const filteredBookmarks = fuseResults.map(result => result.item);
+            this.logger.log(filteredBookmarks, "", "dev");
+
+            // Display the search results
+            this.displaySearchResults(filteredBookmarks, resultsContainer);
+
+            // Show modal if there are results or fetching
+            resultsContainer.style.display = "block";
+        });
+
+        searchBody.appendChild(searchHeader);
+        searchBody.appendChild(searchBar);
+        searchBody.appendChild(resultsContainer);
+        if (topView) {
+            sideContainer?.insertBefore(searchBody, topView);
+        }
+    }
+
+    private displaySearchResults(bookmarks: any[], container: HTMLElement): void {
+        container.innerHTML = ""; // Clear previous results
+
+        if (bookmarks.length === 0) {
+            container.innerHTML = "<p>No matching bookmarks found.</p>";
+            return;
+        }
+
+        const list = document.createElement("ul");
+        list.classList.add("bookmark-list");
+
+        bookmarks.forEach((bookmark) => {
+            const listItem = document.createElement("li");
+            listItem.classList.add("bookmark-item");
+
+            const link = document.createElement("a");
+            link.href = bookmark.link_chapter_now;
+            link.textContent = bookmark.storyname;
+
+            listItem.appendChild(link);
+            list.appendChild(listItem);
+        });
+
+        container.appendChild(list);
     }
 
     initializeImages() {
@@ -227,6 +335,65 @@ class MangaNato {
     -moz-box-shadow: inset 0 0 0 4px #dedede;
     -webkit-box-shadow: inset 0 0 0 4px #dedede;
     box-shadow: inset 0 0 0 4px #dedede;
+}
+.custom-search-bar {
+    background-color: #3e3e3e;
+    color: #d0d0d0;
+    width: 100%;
+    border: none;
+    padding: 10px 5px;
+}
+
+/* Position the results container as a dropdown */
+.bookmark-search-results-dropdown {
+    position: absolute;
+    top: 100%; /* Position it below the search bar */
+    left: 0;
+    right: 0;
+    background-color: #3e3e3e;
+    border: 1px solid #ccc;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Search Results */
+.bookmark-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.bookmark-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #ccc;
+}
+
+.bookmark-item:last-child {
+    border-bottom: none;
+}
+
+.bookmark-item:hover {
+    background-color: #ff5417;
+}
+
+.bookmark-item a {
+    text-decoration: none;
+    color: #d0d0d0;
+    display: block;
+}
+
+.bookmark-item a:hover {
+    text-decoration: none;
+}
+
+/* Style for the "No matching bookmarks found" message */
+.bookmark-search-results-dropdown p {
+    padding: 8px 12px;
+    margin: 0;
+    color: #d0d0d0;
 }
 `;
         document.head.appendChild(style);

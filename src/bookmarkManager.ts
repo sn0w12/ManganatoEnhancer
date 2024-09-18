@@ -112,7 +112,10 @@ class BookmarkManager {
                 const result = await response.json();
 
                 if (result.result === 'ok') {
-                    const bookmarks = result.data;
+                    const bookmarks = result.data.map((bookmark: any) => ({
+                        ...bookmark,
+                        page: currentPage
+                    }));
 
                     if (Array.isArray(bookmarks) && bookmarks.length > 0) {
                         // Compare with previous page data
