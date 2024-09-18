@@ -511,7 +511,7 @@ class Settings {
         });
     }
 
-    addCategory(title: string, tooltipText: string = "") {
+    addCategory(title: string, tooltipText: string = "", defaultOpen: boolean = true) {
         const categoryTitle = document.createElement('div');
         categoryTitle.classList.add('settings-category-title');
 
@@ -586,6 +586,11 @@ class Settings {
 
         const settingsContainer = document.createElement('div');
         settingsContainer.classList.add('settings-category-container');
+
+        if (!defaultOpen) {
+            settingsContainer.classList.toggle('collapsed');
+            toggleButton.innerText = settingsContainer.classList.contains('collapsed') ? 'Open' : 'Close';
+        }
 
         categoryTitle.appendChild(titleContainer);
         categoryTitle.appendChild(toggleButton);
