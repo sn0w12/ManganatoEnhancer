@@ -169,6 +169,7 @@ class Settings {
                 float: right;
                 z-index: 1003;
                 position: relative;
+                transition: background-color 0.25s ease;
             }
 
             .settings-modal .close-button:hover {
