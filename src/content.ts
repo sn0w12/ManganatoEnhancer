@@ -6,6 +6,7 @@ class MangaNato {
     private logger = new Logger("Manganato");
     private shortcutManager = new ShortcutManager();
     private progressBar = document.createElement("div");
+    private pageCount = document.createElement("div");
     private totalPages = 0;
     private currentPage = -1;
     private images!: NodeListOf<HTMLImageElement>;
@@ -60,6 +61,9 @@ class MangaNato {
     private addSettings() {
         this.settings.addCategory('General Settings');
         this.settings.addCheckboxSetting('smoothScrolling', 'Smooth Scrolling', false);
+        this.settings.addCheckboxSetting('showPageCount', 'Show Page Count', false, () => {
+            this.updatePageCount();
+        });
 
         this.settings.addCategory('Shortcut Keys', '', false);
         this.settings.addKeyBindingSetting('homeKeys', 'Home', 'Control+m');
@@ -164,7 +168,18 @@ class MangaNato {
 }
 .navigation-box.right {
     right: 30px;
-}`;
+}
+.page-count {
+    position: fixed;
+    bottom: 5px;
+    left: 0;
+    padding: 5px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    z-index: 100;
+    border-radius: 5px;
+}
+`;
         document.head.appendChild(style);
     }
 
@@ -357,6 +372,24 @@ class MangaNato {
         );
     }
 
+    updatePageCount() {
+        if (this.settings.getSetting("showPageCount") === false) {
+            this.pageCount.style.display = "none";
+            return;
+        }
+
+        this.pageCount.style.display = "block";
+        this.pageCount.textContent = `${this.currentPage + 1} / ${this.totalPages}`;
+        if (this.images.length === 0) {
+            return;
+        }
+        const firstImage = this.images[0];
+        const firstImageRect = firstImage.getBoundingClientRect();
+        const pageRect = this.pageCount.getBoundingClientRect();
+        const leftPosition = firstImageRect.left - pageRect.width - 5;
+        this.pageCount.style.left = `${leftPosition}px`;
+    }
+
     addMangaProgress() {
         const progressbarParent = document.createElement("div");
         progressbarParent.classList.add("progressbar-parent");
@@ -375,13 +408,24 @@ class MangaNato {
         }
 
         // Append progress bar to parent container and parent container to body
-        this.logger.log(this.progressBar);
         progressbarParent.appendChild(this.progressBar);
         document.body.appendChild(progressbarParent);
+
+        if (this.settings.getSetting("showPageCount")) {
+            this.pageCount.classList.add("page-count", "page-count-absolute");
+            this.pageCount.textContent = `${this.currentPage + 1} / ${this.totalPages}`;
+            document.body.appendChild(this.pageCount);
+
+            this.updatePageCount();
+            window.addEventListener("resize", () => {
+                this.updatePageCount();
+            });
+        }
     }
 
     updateMangaProgress(currentPage: number) {
         this.currentPage = currentPage;
+        this.updatePageCount();
         for (let i = 0; i < this.totalPages; i++) {
             const pageRect = this.progressBar.children[i] as HTMLElement;
             if (pageRect) {

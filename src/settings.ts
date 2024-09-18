@@ -396,7 +396,7 @@ class Settings {
      * @param label - The label text to display next to the checkbox.
      * @param defaultValue - The default checked state of the checkbox.
      */
-    addCheckboxSetting(id: string, label: string, defaultValue: boolean) {
+    addCheckboxSetting(id: string, label: string, defaultValue: boolean, onChange: Function = () => {}) {
         const setting = document.createElement('div');
         const value = id in this.settings ? this.settings[id] : defaultValue;
         setting.innerHTML = `
@@ -405,6 +405,7 @@ class Settings {
                 ${label}
             </label>
         `;
+        setting.style.marginBottom = '10px';
 
         if (this.currentCategoryContainer) {
             this.currentCategoryContainer.appendChild(setting);
@@ -418,6 +419,7 @@ class Settings {
         setting.querySelector('input')?.addEventListener('change', (event) => {
             this.settings[id] = (event.target as HTMLInputElement).checked;
             this.saveSettings();
+            if (onChange) onChange();
         });
     }
 
