@@ -1,8 +1,11 @@
+import { Logger } from "../utility/logger";
+
 class BookmarkManager {
     private bookmarkCookieName = 'bookmark-server';
     private userAccCookieName = 'user_acc';
     private objUrlBookmarkBaseSv1 = 'https://user.mngusr.com/';
     private objUrlBookmarkBaseSv2 = 'https://usermn.manganato.com/';
+    private logger = new Logger('BookmarkManager');
 
     // Utility function to get a cookie value by name
     private getCookie(name: string): string | null {
@@ -110,6 +113,8 @@ class BookmarkManager {
                 }
 
                 const result = await response.json();
+                const finalPage = result.bm_page_total;
+                this.logger.log(`${currentPage} / ${finalPage}`, '', 'dev');
 
                 if (result.result === 'ok') {
                     const bookmarks = result.data.map((bookmark: any) => ({
@@ -118,9 +123,7 @@ class BookmarkManager {
                     }));
 
                     if (Array.isArray(bookmarks) && bookmarks.length > 0) {
-                        // Compare with previous page data
-                        if (previousPageData && this.isSameBookmarks(previousPageData, bookmarks)) {
-                            // Same data as previous page, we've reached the last page
+                        if (currentPage >= finalPage) {
                             break;
                         } else {
                             allBookmarks.push(...bookmarks);
@@ -142,26 +145,6 @@ class BookmarkManager {
             this.handleFetchError(error);
             return [];
         }
-    }
-
-    // Helper method to compare two arrays of bookmarks
-    private isSameBookmarks(bookmarks1: any[], bookmarks2: any[]): boolean {
-        if (bookmarks1.length !== bookmarks2.length) {
-            return false;
-        }
-
-        for (let i = 0; i < bookmarks1.length; i++) {
-            if (!this.isSameBookmark(bookmarks1[i], bookmarks2[i])) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    // Helper method to compare two bookmark objects
-    private isSameBookmark(bookmark1: any, bookmark2: any): boolean {
-        return bookmark1.storyid === bookmark2.storyid;
     }
 }
 
