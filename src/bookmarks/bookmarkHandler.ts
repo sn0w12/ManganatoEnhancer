@@ -8,6 +8,7 @@ class BookmarkHandler {
     private bookmarkManager = new BookmarkManager();
     private fuse!: Fuse<any>;
     private bookmarks: any[] | undefined;
+    private searchBar!: HTMLInputElement;
 
     constructor(private settings: Settings) {
         this.settings = settings;
@@ -27,6 +28,8 @@ class BookmarkHandler {
                     threshold: 0.4, // Adjust for sensitivity
                 };
                 this.fuse = new Fuse(this.bookmarks, options);
+                this.searchBar.disabled = false;
+                this.searchBar.placeholder = "Search...";
             } else {
                 this.logger.log('No bookmarks found or an error occurred.', 'info', 'error');
             }
@@ -100,8 +103,10 @@ class BookmarkHandler {
 
         const searchBar = document.createElement("input");
         searchBar.type = "text";
-        searchBar.placeholder = "Search...";
+        searchBar.placeholder = "Fetching Bookmarks...";
+        searchBar.disabled = true;
         searchBar.classList.add("custom-search-bar");
+        this.searchBar = searchBar;
 
         const resultsContainer = document.createElement("div");
         resultsContainer.classList.add("bookmark-search-results-dropdown");
@@ -130,13 +135,6 @@ class BookmarkHandler {
                 resultsContainer.style.display = "block";
                 return;
             }
-
-            // Filter bookmarks based on the query
-            /*
-            const filteredBookmarks = this.bookmarks.filter((bookmark) =>
-                bookmark.storyname.toLowerCase().includes(query)
-            );
-            */
 
             const fuseResults = this.fuse.search(query);
             const filteredBookmarks = fuseResults.map(result => result.item);
