@@ -1,3 +1,17 @@
+/**
+ * The `Settings` class provides a user interface for managing application settings.
+ * It includes methods for creating and displaying a settings modal, adding various types of settings,
+ * and saving/loading settings to/from local storage.
+ *
+ * @example
+ * ```typescript
+ * const settings = new Settings();
+ * settings.addCategory('General Settings');
+ * settings.addCheckboxSetting('darkMode', 'Enable Dark Mode', false);
+ * settings.addTextInputSetting('username', 'Username', 'Guest');
+ * settings.addKeyBindingSetting('shortcut', 'Shortcut', 'Ctrl+S');
+ * ```
+ */
 class Settings {
     private settingsButton: HTMLButtonElement;
     private settingsModal: HTMLDivElement;

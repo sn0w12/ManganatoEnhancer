@@ -1,6 +1,13 @@
 type LogType = "error" | "warning" | "success" | "info";
 type categoryType = "img" | "info" | "";
 
+/**
+ * Logger class provides methods to log messages to the console with different log levels and categories,
+ * and to display popup notifications on the web page.
+ *
+ * @class
+ * @param {string} prefix - The prefix to be added to each log message.
+ */
 class Logger {
     private prefix: string;
     private popups: HTMLDivElement[] = [];
@@ -71,6 +78,18 @@ class Logger {
         return luminance > 0.5 ? '#000000' : '#FFFFFF'; // Black text for bright bg, white text for dark bg
     }
 
+    /**
+     * Logs a message to the console with a specific category and type, optionally including a detailed message.
+     *
+     * @param message - The main message to log. Can be of any type.
+     * @param category - The category of the log message. Defaults to an empty string.
+     * @param type - The type of the log message. Defaults to "info". Can be "info", "warn", "error", etc.
+     * @param detailMessage - An optional detailed message to log.
+     *
+     * The log message is styled with CSS based on the type and category provided. If the type is "error",
+     * the message is logged using `console.error`. Otherwise, the message is logged using `console.groupCollapsed`,
+     * and the detailed message (if provided) is logged within the group. A stack trace is also included.
+     */
     log(message: any, category: categoryType = "", type: LogType = "info", detailMessage: string = "") {
         const generalCss = 'color: white; padding: 2px 6px 2px 6px; '
         const typeColor = this.typeColorMap[type];
@@ -107,6 +126,14 @@ class Logger {
         return totalHeight;
     }
 
+    /**
+     * Displays a popup message on the screen with a specified type, detail message, and timeout.
+     *
+     * @param message - The main message to display in the popup.
+     * @param type - The type of the log message, which determines the color of the popup.
+     * @param detailMessage - An optional detailed message to display below the main message.
+     * @param timeOut - The duration (in milliseconds) for which the popup should be displayed before disappearing.
+     */
     popup(message: any, type: LogType = "info", detailMessage: string = "", timeOut: number = 2500) {
         const color = this.typeColorMap[type].substring(19).slice(0, -1);
 

@@ -1,3 +1,15 @@
+/**
+ * The `ShortcutManager` class is responsible for managing keyboard shortcuts.
+ * It allows registering shortcuts with specific key combinations and actions,
+ * and handles the execution of these actions when the corresponding keys are pressed.
+ *
+ * @class
+ * @example
+ * const manager = new ShortcutManager();
+ * manager.registerShortcut('Control+S', () => {
+ *     console.log('Save action triggered');
+ * });
+ */
 class ShortcutManager {
     private shortcuts: Array<{
         keys: string[];
@@ -82,6 +94,13 @@ class ShortcutManager {
         }
     }
 
+    /**
+     * Registers a keyboard shortcut with the specified keys, action, and optional condition.
+     *
+     * @param keys - A string or an array of strings representing the key combinations for the shortcut.
+     * @param action - A function to be executed when the shortcut is triggered.
+     * @param condition - An optional function that returns a boolean indicating whether the shortcut should be active.
+     */
     public registerShortcut(
         keys: string | string[],
         action: () => void,
