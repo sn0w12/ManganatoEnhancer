@@ -62,12 +62,16 @@ class MangaNato {
     private addSettings() {
         this.settings.addCategory('General Settings');
         this.settings.addCheckboxSetting('smoothScrolling', 'Smooth Scrolling', false);
+        this.settings.addCheckboxSetting('scrollToNav', 'Scroll to Navigation After Chapter', false);
+        this.settings.addCheckboxSetting('goToNextChapter', 'Go to Next Chapter After Last Page', true);
         this.settings.addCheckboxSetting('showPageCount', 'Show Page Count', false, () => {
             this.updatePageCount();
         });
         this.settings.addComboSetting('readingDirection', 'Reading Direction', ['Left to Right', 'Right to Left'], 'Left to Right', () => {
             this.addNavigationBoxes();
         });
+        this.settings.addTextInputSetting('pageHeight', 'Manga Page Height', '100vh');
+        this.settings.addTextInputSetting('stripWidth', 'Strip Page Width', '450px');
 
         this.settings.addCategory('Shortcut Keys', '', false);
         this.settings.addKeyBindingSetting('homeKeys', 'Home', 'Control+m');
@@ -196,25 +200,36 @@ class MangaNato {
         return this.settings.getSetting("readingDirection") === "Left to Right" ? true : false;
     }
 
+    goToNextChapter() {
+        if (!this.settings.getSetting("goToNextChapter")) {
+            this.logger.popup("Chapter Finished", "info");
+            return;
+        }
+        const nextChapterButton = this.navigationPanel.querySelector<HTMLButtonElement>(
+            ".navi-change-chapter-btn-next"
+        );
+        if (nextChapterButton) {
+            nextChapterButton.click();
+        } else {
+            this.logger.popup("No Next Chapter", "warning");
+        }
+        return;
+    }
+
     goToNextPage() {
         if (this.isNavigationPanelInView()) {
-            const nextChapterButton = this.navigationPanel.querySelector<HTMLButtonElement>(
-                ".navi-change-chapter-btn-next"
-            );
-            if (nextChapterButton) {
-                nextChapterButton.click();
-            } else {
-                this.logger.popup("No Next Chapter", "warning");
-            }
+            this.goToNextChapter();
             return;
         }
 
         // Scroll to the next image (bottom)
         if (this.currentPage < this.totalPages - 1) {
             this.scrollToImage(this.currentPage + 1, "end");
-        } else if (this.currentPage === this.totalPages - 1) {
+        } else if (this.currentPage === this.totalPages - 1 && this.settings.getSetting("scrollToNav")) {
             const behavior = this.settings.getSetting("smoothScrolling") ? "smooth" : "auto";
             this.navigationPanel.scrollIntoView({ behavior: behavior, block: "end" });
+        } else {
+            this.goToNextChapter();
         }
     }
 
@@ -247,6 +262,9 @@ class MangaNato {
         const images = document.querySelectorAll<HTMLImageElement>('.container-chapter-reader img');
         let allImagesBelowThreshold = true;
 
+        const pageHeight = this.settings.getSetting("pageHeight");
+        const stripWidth = this.settings.getSetting("stripWidth");
+
         images.forEach(img => {
             let ratio = img.naturalHeight / img.naturalWidth;
             if (ratio > 2.5) {
@@ -254,9 +272,10 @@ class MangaNato {
             }
         });
 
-        const imageHeight = allImagesBelowThreshold ? '100vh' : '450px';
+        const imageHeight = allImagesBelowThreshold ? pageHeight : stripWidth;
+        const imageOrientation = allImagesBelowThreshold ? "height" : "width";
         images.forEach(img => {
-            img.style.height = imageHeight;
+            img.style[imageOrientation as 'height' | 'width'] = imageHeight;
             img.style.zIndex = '10';
             img.style.position = 'relative';
         });
