@@ -61,12 +61,14 @@ class MangaNato {
 
     private addSettings() {
         this.settings.addCategory('General Settings');
+        this.settings.addSeparator();
         this.settings.addCheckboxSetting('smoothScrolling', 'Smooth Scrolling', false);
         this.settings.addCheckboxSetting('scrollToNav', 'Scroll to Navigation After Chapter', false);
         this.settings.addCheckboxSetting('goToNextChapter', 'Go to Next Chapter After Last Page', true);
         this.settings.addCheckboxSetting('showPageCount', 'Show Page Count', false, () => {
             this.updatePageCount();
         });
+        this.settings.addSeparator();
         this.settings.addComboSetting('readingDirection', 'Reading Direction', ['Left to Right', 'Right to Left'], 'Left to Right', () => {
             this.addNavigationBoxes();
         });

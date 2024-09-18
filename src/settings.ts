@@ -338,6 +338,11 @@ class Settings {
                 text-decoration: underline;
             }
 
+            .settings-category-custom-separator {
+                margin-bottom: 5px;
+                border-top: 1px solid #7f7f7f;
+            }
+
             .settings-container::-webkit-scrollbar {
                 width: 12px;
             }
@@ -611,6 +616,16 @@ class Settings {
                 onChange();
             }
         });
+    }
+
+    addSeparator() {
+        const separator = document.createElement('div');
+        separator.classList.add('settings-category-custom-separator');
+        if (this.currentCategoryContainer) {
+            this.currentCategoryContainer.appendChild(separator);
+        } else {
+            this.settingsContainer.appendChild(separator);
+        }
     }
 
     /**
