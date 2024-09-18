@@ -198,6 +198,19 @@ class MangaNato {
 .page-count span {
     color: #ff5417;
 }
+.page-selector-input {
+    width: 50px;
+    padding: 8px 12px;
+    margin-right: 5px;
+    color: #666;
+    font: 700 11px sans-serif;
+    border: none;
+}
+.page-selector-input:focus {
+    -moz-box-shadow: inset 0 0 0 4px #dedede;
+    -webkit-box-shadow: inset 0 0 0 4px #dedede;
+    box-shadow: inset 0 0 0 4px #dedede;
+}
 `;
         document.head.appendChild(style);
     }
@@ -309,6 +322,53 @@ class MangaNato {
             containers.forEach(container => {
                 container.style.zIndex = "1000";
                 container.style.position = "relative";
+            });
+        }
+
+        const logger = this.logger;
+        var observer = new MutationObserver(function(mutations){
+            const pageSelector = document.querySelector<HTMLDivElement>(".group-page");
+            if(pageSelector) {
+                observer.disconnect(); // to stop observing the dom
+
+                const lastPageElement = document.querySelector<HTMLAnchorElement>(".go-p-end");
+                let lastPage = 100;
+                if (lastPageElement && lastPageElement.textContent) {
+                    lastPage = parseInt(lastPageElement.textContent.replace(/[^\d]/g, ''));
+                }
+
+                const pageSelectorInput = document.createElement("input");
+                pageSelectorInput.classList.add("page-selector-input");
+                pageSelectorInput.type = "number";
+                pageSelectorInput.min = "1";
+                pageSelectorInput.max = lastPage.toString();
+                pageSelectorInput.placeholder = "...";
+
+                pageSelectorInput.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        const pageNumber = parseInt(pageSelectorInput.value);
+                        if (!pageSelectorInput.value) {
+                            logger.popup("Please enter a page number", "warning");
+                            return;
+                        }
+                        if (pageNumber > lastPage || pageNumber < 1) {
+                            logger.popup(`Page ${pageNumber} doesn't exist`, "warning");
+                            return;
+                        }
+                        window.location.href = `https://manganato.com/bookmark?page=${pageNumber}`;
+                    }
+                });
+
+                const insertElement = pageSelector.children[pageSelector.children.length - 1];
+                pageSelector.insertBefore(pageSelectorInput, insertElement);
+            }
+        })
+
+        const pageSelectorParent = document.querySelector<HTMLDivElement>(".bookmark-content");
+        if (pageSelectorParent) {
+            observer.observe(pageSelectorParent, {
+                childList: true,
+                subtree: true
             });
         }
     }
