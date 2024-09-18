@@ -76,10 +76,12 @@ class MangaNato {
         this.settings.addTextInputSetting('stripWidth', 'Strip Page Width', '450px');
 
         this.settings.addCategory('Shortcut Keys', '', false);
+        this.settings.addSeparator();
         this.settings.addKeyBindingSetting('homeKeys', 'Home', 'Control+m');
         this.settings.addKeyBindingSetting('bookmarksKeys', 'Bookmarks', 'Control+b');
 
         this.settings.addCategory('Manga Shortcut Keys', '', false);
+        this.settings.addSeparator();
         this.settings.addKeyBindingSetting('nextKeys', 'Next Page', 'ArrowRight');
         this.settings.addKeyBindingSetting('previousKeys', 'Previous Page', 'ArrowLeft');
         this.settings.addKeyBindingSetting('lastPageKeys', 'Last Page', 'Shift+ArrowRight');
@@ -90,9 +92,11 @@ class MangaNato {
         this.settings.addKeyBindingSetting('serverKeys', 'Image Server', 'Control+i');
 
         this.settings.addCategory('Manga Page Shortcut Keys', 'On a mangas main page.', false);
+        this.settings.addSeparator();
         this.settings.addKeyBindingSetting('firstChapterKey', 'First Chapter', 'Control+Enter');
 
         this.settings.addCategory('Bookmarks Page Shortcut Keys', 'In your bookmarks page.', false);
+        this.settings.addSeparator();
         this.settings.addKeyBindingSetting('nextBookmarkPageKeys', 'Next Page', 'Control+ArrowRight');
         this.settings.addKeyBindingSetting('previousBookmarkPageKeys', 'Previous Page', 'Control+ArrowLeft');
         this.settings.addKeyBindingSetting('lastBookmarkPageKeys', 'Last Page', 'Control+Shift+ArrowRight');
