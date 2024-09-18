@@ -216,7 +216,7 @@ class BookmarkHandler {
 
         button.addEventListener('click', () => {
             if (!this.bookmarks) {
-                this.logger.popup('No bookmarks found.', 'error');
+                this.logger.popup('Bookmarks still fetching.', 'warning');
                 return;
             }
 
