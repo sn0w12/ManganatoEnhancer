@@ -179,6 +179,9 @@ class MangaNato {
     z-index: 100;
     border-radius: 5px;
 }
+.page-count span {
+    color: #ff5417;
+}
 `;
         document.head.appendChild(style);
     }
@@ -379,7 +382,7 @@ class MangaNato {
         }
 
         this.pageCount.style.display = "block";
-        this.pageCount.textContent = `${this.currentPage + 1} / ${this.totalPages}`;
+        this.pageCount.innerHTML = `${this.currentPage + 1} <span>/</span> ${this.totalPages}`;
         if (this.images.length === 0) {
             return;
         }
