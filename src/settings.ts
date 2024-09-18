@@ -464,8 +464,8 @@ class Settings {
                 const keyTag = document.createElement('span');
                 keyTag.classList.add('keybinding-tag');
 
-                const keys = key.split('+').map((k: string) => this.keyMapping[k] || k);
-                keyTag.textContent = keys.join('+');
+                const tempKeys = key.split('+').map((k: string) => this.keyMapping[k] || k);
+                keyTag.textContent = tempKeys.join('+');
 
                 const removeButton = document.createElement('button');
                 removeButton.classList.add('keybinding-remove');
