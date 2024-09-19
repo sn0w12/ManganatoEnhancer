@@ -297,7 +297,7 @@ class BookmarkHandler {
         // Append the img element to the button
         button.appendChild(img);
         button.addEventListener('click', () => {
-            if (confirm(`Are you sure you want to proceed? It will take approximately ${((this.bookmarks ? this.bookmarks.length : 0) * timePerBookmark / 60) / this.MAX_TABS * 1.1} minutes to process all bookmarks.`)) {
+            if (confirm(`Are you sure you want to proceed? It will take approximately ${((this.bookmarks ? this.bookmarks.length : 0) * timePerBookmark / 60) / this.MAX_TABS * 1.1} minutes to process all bookmarks. You need the MAL-Sync extension configured and enabled.`)) {
                 for (let i = 0; i < this.MAX_TABS; i++) {
                     this.processNextBookmark();
                 }
