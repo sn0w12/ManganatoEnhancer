@@ -81,6 +81,7 @@ class BookmarkManager {
             console.error('User is not logged in or user_data is missing');
             return [];
         }
+        const cachedBookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
 
         let url = this.objUrlBookmarkBaseSv1 + 'bookmark_get_list_full';
         url = this.cookieGetUrl(url);
@@ -90,8 +91,6 @@ class BookmarkManager {
         const bm_source = 'manganato';
 
         try {
-            let previousPageData: any[] | null = null;
-
             while (true) {
                 const data = new URLSearchParams();
                 data.append('user_data', user_data);
@@ -113,21 +112,26 @@ class BookmarkManager {
                 }
 
                 const result = await response.json();
+                if (result.bm_quantily == cachedBookmarks.length) {
+                    return cachedBookmarks;
+                }
+
                 const finalPage = result.bm_page_total;
-                this.logger.log(`${currentPage} / ${finalPage}`, '', 'dev');
 
                 if (result.result === 'ok') {
                     const bookmarks = result.data.map((bookmark: any) => ({
                         ...bookmark,
                         page: currentPage
                     }));
+                    this.logger.log(`${currentPage} / ${finalPage}, ${bookmarks.length}, ${allBookmarks.length + bookmarks.length}`, '', 'dev');
 
                     if (Array.isArray(bookmarks) && bookmarks.length > 0) {
                         if (currentPage >= finalPage) {
+                            allBookmarks.push(...bookmarks);
+                            localStorage.setItem('bookmarks', JSON.stringify(allBookmarks));
                             break;
                         } else {
                             allBookmarks.push(...bookmarks);
-                            previousPageData = bookmarks;
                             currentPage++;
                         }
                     } else {
