@@ -2,6 +2,7 @@ import { PageHandler } from "./pageHandler";
 import { Logger } from "../utility/logger";
 import { Settings } from "../utility/settings";
 import { ShortcutManager } from "../utility/shortcutManager";
+import { Manganato } from "../manganato";
 
 class ChapterHandler {
     private logger = new Logger("Manganato");
@@ -20,8 +21,9 @@ class ChapterHandler {
 
     public isStrip = false;
 
-    constructor(private settings: Settings) {
+    constructor(private settings: Settings, private manganato: Manganato) {
         this.settings = settings;
+        this.manganato = manganato;
     }
 
     public initialize() {
@@ -193,6 +195,10 @@ class ChapterHandler {
     }
 
     addNavigationBoxes() {
+        if (this.manganato.getPageType() !== "chapter") {
+            return;
+        }
+
         const existingBoxes = document.querySelectorAll('.navigation-box');
         existingBoxes.forEach(box => box.remove());
         const readingDirection = this.getReadingDirection();

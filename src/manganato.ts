@@ -6,7 +6,7 @@ import { ChapterHandler } from './chapters/chapterHandler';
 import { BookmarkHandler } from './bookmarks/bookmarkHandler';
 
 class Manganato {
-    private _chapterHandler = new ChapterHandler(this.settings);
+    private _chapterHandler = new ChapterHandler(this.settings, this);
     private _bookmarkHandler = new BookmarkHandler(this.settings);
     private logger: Logger;
     private shortcutManager: ShortcutManager;
@@ -70,9 +70,16 @@ class Manganato {
             this.chapterHandler.updatePageCount();
         });
         this.settings.addCheckboxSetting('searchImages', 'Show Search Images', true);
+        this.settings.addSeparator();
         this.settings.addCheckboxSetting('showNavigationBoxes', 'Show Navigation Boxes', false, () => {
             this.chapterHandler.addNavigationBoxes();
-        });;
+        });
+        this.settings.addTextInputSetting('nextPageNavigationSize', 'Next Page Navigation Size', '40vw', 'text', () => {
+            this.updateNavigationBoxes();
+        });
+        this.settings.addTextInputSetting('previousPageNavigationSize', 'Previous Page Navigation Size', '30vw', 'text', () => {
+            this.updateNavigationBoxes();
+        });
         this.settings.addSeparator();
         this.settings.addComboSetting('readingDirection', 'Reading Direction', ['Left to Right', 'Right to Left'], 'Left to Right', () => {
             this.chapterHandler.addNavigationBoxes();
@@ -109,8 +116,23 @@ class Manganato {
         this.settings.addKeyBindingSetting('firstBookmarkPageKeys', 'First Page', 'Control+Shift+ArrowLeft');
     }
 
+    private updateNavigationBoxes() {
+        const nextPageNavigationSize = this.settings.getSetting("nextPageNavigationSize");
+        const previousPageNavigationSize = this.settings.getSetting("previousPageNavigationSize");
+
+        if (this.settings.isValidCssSize(nextPageNavigationSize) && this.settings.isValidCssSize(previousPageNavigationSize)) {
+            this.addCss();
+        }
+    }
+
     private addCss() {
+        const existingStyle = document.getElementById('custom-style');
+        if (existingStyle) {
+            existingStyle.remove();
+        }
+
         const style = document.createElement('style');
+        style.id = 'custom-style';
         style.innerHTML = `
 .progressbar-parent {
     height: 100vh;
@@ -150,7 +172,7 @@ class Manganato {
     position: fixed;
     top: 0;
     bottom: 0;
-    width: 40vw;
+    width: ${this.settings.getSetting("nextPageNavigationSize")};
     background-color: rgba(0, 0, 0, 0);
     z-index: 100;
     cursor: pointer;
@@ -162,7 +184,7 @@ class Manganato {
     right: 30px;
 }
 .navigation-box.sub {
-    width: 30vw;
+    width: ${this.settings.getSetting("previousPageNavigationSize")};
 }
 .page-count {
     position: fixed;

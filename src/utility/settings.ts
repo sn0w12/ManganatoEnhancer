@@ -444,6 +444,7 @@ class Settings {
 
         document.body.style.overflow = 'hidden';
         document.body.style.height = '100%';
+        document.body.setAttribute('data-settings-open', 'true');
     }
 
     private hideModal() {
@@ -452,6 +453,7 @@ class Settings {
 
         document.body.style.overflow = '';
         document.body.style.height = '';
+        document.body.setAttribute('data-settings-open', 'false');
     }
 
     private saveSettings() {
@@ -504,7 +506,7 @@ class Settings {
      * @param label - The label to display next to the text input.
      * @param defaultValue - The default value for the text input if the setting is not already defined.
      */
-    addTextInputSetting(id: string, label: string, defaultValue: string, type: string = 'text') {
+    addTextInputSetting(id: string, label: string, defaultValue: string, type: string = 'text', onChange: Function = () => {}) {
         const setting = document.createElement('div');
         const value = id in this.settings ? this.settings[id] : defaultValue;
         setting.innerHTML = `
@@ -526,6 +528,7 @@ class Settings {
         setting.querySelector('input')?.addEventListener('input', (event) => {
             this.settings[id] = (event.target as HTMLInputElement).value;
             this.saveSettings();
+            onChange();
         });
     }
 
@@ -781,6 +784,17 @@ class Settings {
      */
     getSetting(id: string) {
         return this.settings[id];
+    }
+
+    /**
+     * Checks if a given string is a valid CSS size.
+     *
+     * @param value - The string to be checked.
+     * @returns `true` if the string is a valid CSS size, otherwise `false`.
+     */
+    isValidCssSize(value: string): boolean {
+        const cssSizeRegex = /^-?\d+(\.\d+)?(px|em|rem|%|vh|vw|vmin|vmax|ch|ex|cm|mm|in|pt|pc)$/;
+        return cssSizeRegex.test(value);
     }
 }
 
