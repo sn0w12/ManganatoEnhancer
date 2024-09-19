@@ -80,7 +80,8 @@ class ShortcutManager {
 
     private handleKeyDown(event: KeyboardEvent) {
         const keyCombination = this.normalizeKey(event);
-        if (document.body.getAttribute('data-settings-open') === 'true') {
+        if (document.body.getAttribute('data-settings-open') === 'true' ||
+        ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName || '')) {
             return;
         }
 
