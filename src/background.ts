@@ -23,6 +23,41 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         });
         return true;
     }
+    if (request.action === "processBookmark") {
+        chrome.tabs.create({ url: request.url, active: false }, (tab) => {
+            if (tab && tab.id !== undefined) {
+                const tabId = tab.id;
+
+                const onTabUpdated = (updatedTabId: number, changeInfo: chrome.tabs.TabChangeInfo) => {
+                    if (updatedTabId === tabId && changeInfo.status === 'complete') {
+                        // Remove the listener to prevent it from firing multiple times
+                        chrome.tabs.onUpdated.removeListener(onTabUpdated);
+
+                        // Inject the content script after the page has fully loaded
+                        chrome.scripting.executeScript(
+                            {
+                                target: { tabId: tabId },
+                                func: contentScriptFunction,
+                            },
+                            () => {
+                                setTimeout(() => {
+                                    chrome.tabs.remove(tabId, () => {
+                                        sendResponse({ success: 1 });
+                                    });
+                                }, 10000); // 10 seconds
+                            }
+                        );
+                    }
+                };
+
+                // Add a listener to wait for the tab to finish loading
+                chrome.tabs.onUpdated.addListener(onTabUpdated);
+            } else {
+                sendResponse({ success: 0 });
+            }
+        });
+        return true;
+    }
 });
 
 function pressButtonOnPage() {
@@ -38,4 +73,40 @@ function pressButtonOnPage() {
         return 2;
     }
     return 0;
+}
+
+function contentScriptFunction() {
+    // Scroll to the bottom of the page
+    window.scrollTo(0, document.body.scrollHeight);
+
+    // Function to click the "Ok" button
+    function clickOkButton(flashDiv: Element) {
+        const okButton = flashDiv.querySelector('button.Yes');
+        if (okButton) {
+            (okButton as HTMLElement).click();
+        }
+    }
+
+    // Check if the target element is already present
+    const flashDiv = document.querySelector('div.flash.type-add');
+    if (flashDiv) {
+        clickOkButton(flashDiv);
+    } else {
+        // Set up MutationObserver
+        const observer = new MutationObserver((mutationsList, observer) => {
+            for (const mutation of mutationsList) {
+                if (mutation.type === 'childList') {
+                    const flashDiv = document.querySelector('div.flash.type-add');
+                    console.log(flashDiv);
+                    if (flashDiv) {
+                        clickOkButton(flashDiv);
+                        observer.disconnect();
+                        break;
+                    }
+                }
+            }
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
 }

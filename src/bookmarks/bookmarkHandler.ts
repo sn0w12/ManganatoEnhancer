@@ -10,6 +10,10 @@ class BookmarkHandler {
     private bookmarks: any[] | undefined;
     private searchBar!: HTMLInputElement;
 
+    private MAX_TABS = 5; // Maximum number of tabs to open simultaneously
+    private bookmarksCopy!: any[];
+    private finishedBookmarks: string[] = [];
+
     constructor(private settings: Settings) {
         this.settings = settings;
     }
@@ -18,11 +22,13 @@ class BookmarkHandler {
         this.fixBookmarkStyles();
         this.addBookmarkSearchBar();
         this.addExportBookmarksButton();
+        this.addMALSyncButton();
 
         this.bookmarkManager.getAllBookmarks().then(bookmarks => {
             if (bookmarks) {
                 this.logger.log('Bookmarks Fetched.', 'info', 'success', bookmarks);
                 this.bookmarks = bookmarks;
+                this.bookmarksCopy = [...this.bookmarks];
                 const options = {
                     keys: ['storyname'],
                     threshold: 0.4, // Adjust for sensitivity
@@ -188,7 +194,7 @@ class BookmarkHandler {
         container.appendChild(list);
     }
 
-    addExportBookmarksButton() {
+    private addExportBookmarksButton() {
         const userOptions = document.querySelector('.box-user-options');
         if (userOptions) {
             const exportButton = this.createExportButton();
@@ -197,6 +203,47 @@ class BookmarkHandler {
                 userOptions.insertBefore(exportButton, insertElement);
             } else {
                 userOptions.appendChild(exportButton);
+            }
+        }
+    }
+
+    private addMALSyncButton() {
+        const userOptions = document.querySelector('.box-user-options');
+        if (userOptions) {
+            const button = this.createMALSyncButton();
+            const insertElement = userOptions.children[4];
+            if (insertElement) {
+                userOptions.insertBefore(button, insertElement);
+            } else {
+                userOptions.appendChild(button);
+            }
+        }
+    }
+
+    private processNextBookmark() {
+        if (!this.bookmarksCopy) {
+            return;
+        }
+
+        if (this.bookmarksCopy.length > 0) {
+            const nextBookmark = this.bookmarksCopy.shift();
+            if (nextBookmark) {
+                chrome.runtime.sendMessage(
+                    {
+                        action: "processBookmark",
+                        url: nextBookmark.link_chapter_now,
+                    },
+                    (response) => {
+                        if (response.success === 0) {
+                            this.logger.popup(`Failed to process bookmark: ${nextBookmark.storyname}`, 'error');
+                        } else {
+                            this.logger.popup(`Processed bookmark: ${nextBookmark.storyname}`, 'success');
+                            this.finishedBookmarks.push(nextBookmark.storyname);
+                        }
+                        setTimeout(() => {
+                            this.processNextBookmark();
+                        }, 5000); // 5 seconds
+                    });
             }
         }
     }
@@ -227,6 +274,34 @@ class BookmarkHandler {
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+        });
+
+        return button;
+    }
+
+    private createMALSyncButton() {
+        const button = document.createElement('button');
+        button.classList.add('manganato-settings-button');
+        button.title = 'MALSync';
+        button.style.background = '0';
+
+        // Create an img element
+        const img = document.createElement('img');
+        img.src = 'https://raw.githubusercontent.com/MALSync/MALSync/refs/heads/master/assets/icons/icon128.png';
+        img.alt = 'MALSync Icon';
+        img.width = 36;
+        img.height = 36;
+
+        const timePerBookmark = 15;
+
+        // Append the img element to the button
+        button.appendChild(img);
+        button.addEventListener('click', () => {
+            if (confirm(`Are you sure you want to proceed? It will take approximately ${((this.bookmarks ? this.bookmarks.length : 0) * timePerBookmark / 60) / this.MAX_TABS * 1.1} minutes to process all bookmarks.`)) {
+                for (let i = 0; i < this.MAX_TABS; i++) {
+                    this.processNextBookmark();
+                }
+            }
         });
 
         return button;
