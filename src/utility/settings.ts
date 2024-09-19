@@ -444,6 +444,7 @@ class Settings {
 
         document.body.style.overflow = 'hidden';
         document.body.style.height = '100%';
+        document.body.style.paddingRight = '17px'; // Prevent page shift
         document.body.setAttribute('data-settings-open', 'true');
     }
 
@@ -453,6 +454,7 @@ class Settings {
 
         document.body.style.overflow = '';
         document.body.style.height = '';
+        document.body.style.paddingRight = '';
         document.body.setAttribute('data-settings-open', 'false');
     }
 
