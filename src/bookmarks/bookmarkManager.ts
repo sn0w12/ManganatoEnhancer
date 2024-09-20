@@ -201,10 +201,10 @@ class BookmarkManager {
         const isSameLength = result.bm_quantily == JSON.parse(localStorage.getItem('bookmarks') || '[]').length;
 
         if (isSamePage && isRecent && isSameLength) {
-            this.logger.log('Valid Cache', 'bookmarks', 'dev');
+            this.logger.log('Valid Cache', 'bookmarks', 'dev', {isSamePage, isRecent, isSameLength});
             return true;
         }
-        this.logger.log('Invalid Cache', 'bookmarks', 'dev');
+        this.logger.log('Invalid Cache', 'bookmarks', 'dev', {isSamePage, isRecent, isSameLength});
         return false;
     }
 
