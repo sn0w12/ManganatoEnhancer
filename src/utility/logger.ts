@@ -153,10 +153,10 @@ class Logger {
                     logCss.push(`border-radius: 3px 0 0 3px; ${css}`);
                     break;
                 case parts.length - 1: // Last
-                    logCss.push(`border-radius: 0 3px 3px 0; ${css}`);
+                    logCss.push(`border-radius: 0 3px 3px 0; border-left: 1px solid ${textColor}; ${css}`);
                     break;
                 default:
-                    logCss.push(`border-radius: 0; ${css}`);
+                    logCss.push(`border-radius: 0; border-left: 1px solid ${textColor}; ${css}`);
                     break;
             }
         }
