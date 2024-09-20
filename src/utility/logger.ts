@@ -1,5 +1,5 @@
 type LogType = "error" | "warning" | "success" | "info" | "dev";
-type categoryType = "img" | "info" | "";
+type categoryType = "img" | "info" | "bookmarks" | "";
 
 /**
  * Logger class provides methods to log messages to the console with different log levels and categories,
@@ -21,6 +21,7 @@ class Logger {
     private categoryColorMap: { [key in categoryType]: string } = {
         img: " background-color: #f15e55;",
         info: " background-color: #bc7690;",
+        bookmarks: " background-color: #7dc4ca;",
         "": "",
     }
 
