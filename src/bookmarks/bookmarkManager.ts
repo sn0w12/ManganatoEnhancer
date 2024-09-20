@@ -34,7 +34,7 @@ class BookmarkManager {
     private userAccCookieName = 'user_acc';
     private objUrlBookmarkBaseSv1 = 'https://user.mngusr.com/';
     private objUrlBookmarkBaseSv2 = 'https://usermn.manganato.com/';
-    private logger = new Logger('BookmarkManager');
+    private logger = new Logger('BookmarkManager', '#e8a751');
 
     constructor(private settings: Settings) {
         this.settings = settings;
