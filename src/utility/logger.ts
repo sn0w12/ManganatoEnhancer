@@ -1,5 +1,5 @@
 type LogType = "error" | "warning" | "success" | "info" | "dev";
-type categoryType = "img" | "info" | "";
+type categoryType = "img" | "info" | "bookmarks" | "";
 
 /**
  * Logger class provides methods to log messages to the console with different log levels and categories,
@@ -10,22 +10,25 @@ type categoryType = "img" | "info" | "";
  */
 class Logger {
     private prefix: string;
+    private prefixColor: string;
     private popups: HTMLDivElement[] = [];
     private typeColorMap: { [key in LogType]: string } = {
-        error: " background-color: #f15e55;",
-        warning: " background-color: #ff5417;",
-        success: " background-color: #1c8a52;",
-        info: " background-color: #7dc4ca;",
-        dev: " background-color: #bc42f5;",
+        error: "#f15e55",
+        warning: "#ff5417",
+        success: "#1c8a52",
+        info: "#7dc4ca",
+        dev: "#bc42f5",
     };
     private categoryColorMap: { [key in categoryType]: string } = {
-        img: " background-color: #f15e55;",
-        info: " background-color: #bc7690;",
+        img: "#f15e55",
+        info: "#bc7690",
+        bookmarks: "#7dc4ca",
         "": "",
     }
 
-    constructor(prefix: string) {
+    constructor(prefix: string, prefixColor: string = "#881798") {
         this.prefix = prefix;
+        this.prefixColor = prefixColor;
         this.addCss();
     }
 
@@ -96,19 +99,23 @@ class Logger {
             return;
         }
 
-        const generalCss = 'color: white; padding: 2px 6px 2px 6px; '
-        const typeColor = this.typeColorMap[type];
-        const typeTextColor = Logger.getTextColorBasedOnBg(typeColor)
-        let customCSS = generalCss + typeColor + ` color: ${typeTextColor}; border-radius: 3px;`;
+        const parts = [
+            {
+                name: this.prefix,
+                color: this.prefixColor,
+            },
+            {
+                name: type,
+                color: this.typeColorMap[type],
+            },
+            {
+                name: category,
+                color: this.categoryColorMap[category],
+            },
+        ];
 
-        let logMessage = [`%c${this.prefix}`, `${customCSS} ${typeColor}`, message]
-        if (category != "") {
-            const categoryColor = this.categoryColorMap[category];
-            const categoryTextColor = Logger.getTextColorBasedOnBg(categoryColor)
-
-            const categoryCSS = `${categoryColor} color: ${categoryTextColor}; border-radius: 0 3px 3px 0; margin-left: -5px;`
-            logMessage = [`%c${this.prefix}%c${category}`, `${customCSS.replace("6px", "10px")} ${typeColor}`, `${generalCss}${categoryCSS}`, message]
-        }
+        const logMessage = this.generateLogCss(parts);
+        logMessage.push(message);
 
         if (type == "error") {
             console.error(...logMessage);
@@ -123,6 +130,49 @@ class Logger {
         console.groupEnd();
     }
 
+    private generateLogCss(parts: { name: string, color: string }[]): string[] {
+        if (parts.length === 1) {
+            const part = parts[0];
+            return [
+                `%c${this.getLogText(part.name)}`,
+                `border-radius: 3px; background-color: ${part.color}; color: ${Logger.getTextColorBasedOnBg(part.color)}; padding: 2px 6px;`
+            ];
+        }
+
+        let logMessage = "";
+        let logCss = [];
+
+        for (let i = 0; i < parts.length; i++) {
+            const part = parts[i];
+            const textColor = Logger.getTextColorBasedOnBg(part.color);
+            let css = `background-color: ${part.color}; color: ${textColor}; padding: 2px 7px 2px 6px; margin-left: -1px;`;
+            logMessage += `%c${this.getLogText(part.name)}`;
+
+            switch (i) {
+                case 0: // First
+                    logCss.push(`border-radius: 3px 0 0 3px; ${css}`);
+                    break;
+                case parts.length - 1: // Last
+                    logCss.push(`border-radius: 0 3px 3px 0; border-left: 1px solid ${textColor}; ${css}`);
+                    break;
+                default:
+                    logCss.push(`border-radius: 0; border-left: 1px solid ${textColor}; ${css}`);
+                    break;
+            }
+        }
+
+        return [logMessage, ...logCss];
+    }
+
+    private getLogText(text: string, maxLength: number = 10): string {
+        const extractUppercase = (str: string) => {
+            const matches = str.match(/[A-Z]/g);
+            return matches ? matches.join('') : "";
+        };
+        const uppercaseText = extractUppercase(text);
+        return uppercaseText.length > 0 ? uppercaseText : text.slice(0, maxLength);
+    }
+
     /**
      * Displays a popup message on the screen with a specified type, detail message, and timeout.
      *
@@ -132,7 +182,7 @@ class Logger {
      * @param timeOut - The duration (in milliseconds) for which the popup should be displayed before disappearing.
      */
     popup(message: any, type: LogType = "info", detailMessage: string = "", timeOut: number = 2500) {
-        const color = this.typeColorMap[type].substring(19).slice(0, -1);
+        const color = this.typeColorMap[type];
 
         // Create the popup element
         const popup = document.createElement('div');

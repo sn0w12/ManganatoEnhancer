@@ -1,11 +1,44 @@
 import { Logger } from "../utility/logger";
+import { Settings } from "../utility/settings";
+
+interface Bookmark {
+    noteid: string;
+    note_story_id: string;
+    note_story_name: string;
+    chapter_numbernow: string;
+    chapter_namenow: string;
+    link_chapter_now: string;
+    storyid: string;
+    storyname: string;
+    link_story: string;
+    image: string;
+    storynameunsigned_storykkl: string;
+    chapterlastname: string;
+    chapterlastnumber: string;
+    chapterlastdateupdate: string;
+    link_chapter_last: string;
+    isread: string;
+}
+
+interface BookmarkResult {
+    result: string;
+    bm_quantily: string;
+    bm_page_now: string;
+    bm_page_total: string;
+    bm_page_limit: string;
+    data: Bookmark[];
+}
 
 class BookmarkManager {
     private bookmarkCookieName = 'bookmark-server';
     private userAccCookieName = 'user_acc';
     private objUrlBookmarkBaseSv1 = 'https://user.mngusr.com/';
     private objUrlBookmarkBaseSv2 = 'https://usermn.manganato.com/';
-    private logger = new Logger('BookmarkManager');
+    private logger = new Logger('BookmarkManager', '#e8a751');
+
+    constructor(private settings: Settings) {
+        this.settings = settings;
+    }
 
     // Utility function to get a cookie value by name
     private getCookie(name: string): string | null {
@@ -112,8 +145,12 @@ class BookmarkManager {
                 }
 
                 const result = await response.json();
-                if (result.bm_quantily == cachedBookmarks.length) {
-                    return cachedBookmarks;
+                if (currentPage === 1) {
+                    if (this.settings.getSetting('useBookmarkCache') && this.isCachedBookmarksValid(result)) {
+                        return cachedBookmarks;
+                    }
+                    localStorage.setItem('bookmarks_first_page', JSON.stringify(result.data));
+                    localStorage.setItem('bookmarks_cache_last_update', Date.now().toString());
                 }
 
                 const finalPage = result.bm_page_total;
@@ -123,7 +160,7 @@ class BookmarkManager {
                         ...bookmark,
                         page: currentPage
                     }));
-                    this.logger.log(`${currentPage} / ${finalPage}, ${bookmarks.length}, ${allBookmarks.length + bookmarks.length}`, '', 'dev');
+                    this.logger.log(`${currentPage} / ${finalPage}, ${bookmarks.length}, ${allBookmarks.length + bookmarks.length}`, 'bookmarks', 'dev');
 
                     if (Array.isArray(bookmarks) && bookmarks.length > 0) {
                         if (currentPage >= finalPage) {
@@ -149,6 +186,39 @@ class BookmarkManager {
             this.handleFetchError(error);
             return [];
         }
+    }
+
+    isCachedBookmarksValid(result: BookmarkResult): boolean {
+        const toMilliseconds = (hrs: number, min: number, sec: number) => (hrs*60*60+min*60+sec)*1000;
+        let lastUpdate = localStorage.getItem('bookmarks_cache_last_update') || Date.now().toString();
+
+        const isCacheRecent = (lastUpdate: string, duration: number): boolean => {
+            return Date.now() - parseInt(lastUpdate) < duration;
+        };
+
+        const isSamePage = this.isSameFirstPage(result.data);
+        const isRecent = isCacheRecent(lastUpdate, toMilliseconds(0, 30, 0));
+        const isSameLength = result.bm_quantily == JSON.parse(localStorage.getItem('bookmarks') || '[]').length;
+
+        if (isSamePage && isRecent && isSameLength) {
+            this.logger.log('Valid Cache', 'bookmarks', 'dev', {isSamePage, isRecent, isSameLength});
+            return true;
+        }
+        this.logger.log('Invalid Cache', 'bookmarks', 'dev', {isSamePage, isRecent, isSameLength});
+        return false;
+    }
+
+    isSameFirstPage(newFirstPage: any[]): boolean {
+        const cachedFirstPage = JSON.parse(localStorage.getItem('bookmarks_first_page') || '[]');
+        if (newFirstPage.length !== cachedFirstPage.length) {
+            return false;
+        }
+        for (let i = 0; i < newFirstPage.length; i++) {
+            if (newFirstPage[i].storyid !== cachedFirstPage[i].storyid) {
+                return false;
+            }
+        }
+        return true;
     }
 }
 
