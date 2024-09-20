@@ -169,7 +169,8 @@ class Logger {
             const matches = str.match(/[A-Z]/g);
             return matches ? matches.join('') : "";
         };
-        return text.length > maxLength ? extractUppercase(text) : text;
+        const uppercaseText = extractUppercase(text);
+        return uppercaseText.length > 0 ? uppercaseText : text.slice(0, maxLength);
     }
 
     /**
