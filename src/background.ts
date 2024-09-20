@@ -44,7 +44,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                                     chrome.tabs.remove(tabId, () => {
                                         sendResponse({ success: 1 });
                                     });
-                                }, 10000); // 10 seconds
+                                }, 5000); // 5 seconds
                             }
                         );
                     }

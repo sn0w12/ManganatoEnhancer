@@ -22,7 +22,9 @@ class BookmarkHandler {
         this.fixBookmarkStyles();
         this.addBookmarkSearchBar();
         this.addExportBookmarksButton();
-        this.addMALSyncButton();
+        if (process.env.NODE_ENV === "development") {
+            this.addMALSyncButton();
+        }
 
         this.bookmarkManager.getAllBookmarks().then(bookmarks => {
             if (bookmarks) {
@@ -292,12 +294,12 @@ class BookmarkHandler {
         img.width = 36;
         img.height = 36;
 
-        const timePerBookmark = 15;
+        const timePerBookmark = 10;
 
         // Append the img element to the button
         button.appendChild(img);
         button.addEventListener('click', () => {
-            if (confirm(`Are you sure you want to proceed? It will take approximately ${((this.bookmarks ? this.bookmarks.length : 0) * timePerBookmark / 60) / this.MAX_TABS * 1.1} minutes to process all bookmarks. You need the MAL-Sync extension configured and enabled.`)) {
+            if (confirm(`Are you sure you want to proceed? It will take approximately ${(((this.bookmarks ? this.bookmarks.length : 0) * timePerBookmark / 60) / this.MAX_TABS * 1.1).toFixed(2)} minutes to process all bookmarks. You need the MAL-Sync extension configured and enabled.`)) {
                 for (let i = 0; i < this.MAX_TABS; i++) {
                     this.processNextBookmark();
                 }
