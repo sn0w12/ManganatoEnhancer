@@ -1,4 +1,5 @@
 import { Logger } from "../utility/logger";
+import { Settings } from "../utility/settings";
 
 interface Bookmark {
     noteid: string;
@@ -34,6 +35,10 @@ class BookmarkManager {
     private objUrlBookmarkBaseSv1 = 'https://user.mngusr.com/';
     private objUrlBookmarkBaseSv2 = 'https://usermn.manganato.com/';
     private logger = new Logger('BookmarkManager');
+
+    constructor(private settings: Settings) {
+        this.settings = settings;
+    }
 
     // Utility function to get a cookie value by name
     private getCookie(name: string): string | null {
@@ -141,7 +146,7 @@ class BookmarkManager {
 
                 const result = await response.json();
                 if (currentPage === 1) {
-                    if (this.isCachedBookmarksValid(result)) {
+                    if (this.settings.getSetting('useBookmarkCache') && this.isCachedBookmarksValid(result)) {
                         return cachedBookmarks;
                     }
                     localStorage.setItem('bookmarks_first_page', JSON.stringify(result.data));

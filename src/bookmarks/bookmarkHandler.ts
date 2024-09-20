@@ -5,7 +5,7 @@ import Fuse from 'fuse.js';
 
 class BookmarkHandler {
     private logger = new Logger("Manganato");
-    private bookmarkManager = new BookmarkManager();
+    private bookmarkManager = new BookmarkManager(this.settings);
     private fuse!: Fuse<any>;
     private bookmarks: any[] | undefined;
     private searchBar!: HTMLInputElement;
