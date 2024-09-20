@@ -112,8 +112,11 @@ class BookmarkManager {
                 }
 
                 const result = await response.json();
-                if (result.bm_quantily == cachedBookmarks.length) {
-                    return cachedBookmarks;
+                if (currentPage === 1) {
+                    if (result.bm_quantily == cachedBookmarks.length && this.isSameFirstPage(result.data)) {
+                        return cachedBookmarks;
+                    }
+                    localStorage.setItem('bookmarks_first_page', JSON.stringify(result.data));
                 }
 
                 const finalPage = result.bm_page_total;
@@ -149,6 +152,23 @@ class BookmarkManager {
             this.handleFetchError(error);
             return [];
         }
+    }
+
+    isSameFirstPage(newFirstPage: any[]): boolean {
+        const cachedFirstPage = JSON.parse(localStorage.getItem('bookmarks_first_page') || '[]');
+        if (newFirstPage.length !== cachedFirstPage.length) {
+            this.logger.log('Different first page length', '', 'dev');
+            console.log('Different first page length');
+            return false;
+        }
+        for (let i = 0; i < newFirstPage.length; i++) {
+            if (newFirstPage[i].storyid !== cachedFirstPage[i].storyid) {
+                this.logger.log('Different first page length', '', 'dev');
+                return false;
+            }
+        }
+        console.log('Same first page');
+        return true;
     }
 }
 
