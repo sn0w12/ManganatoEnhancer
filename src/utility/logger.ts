@@ -135,7 +135,7 @@ class Logger {
             const part = parts[0];
             return [
                 `%c${this.getLogText(part.name)}`,
-                `border-radius: 3px; background-color: ${part.color}; color: ${Logger.getTextColorBasedOnBg(part.color)}; padding: 2px 6px; margin-left: -1px;`
+                `border-radius: 3px; background-color: ${part.color}; color: ${Logger.getTextColorBasedOnBg(part.color)}; padding: 2px 6px;`
             ];
         }
 
