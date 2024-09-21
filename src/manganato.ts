@@ -87,8 +87,11 @@ class Manganato {
         this.settings.addTextInputSetting('pageHeight', 'Manga Page Height', '100vh');
         this.settings.addTextInputSetting('stripWidth', 'Strip Page Width', '450px');
         this.settings.addTextInputSetting('stripScroll', 'Strip Scroll Amount', '750', "number");
+
+        this.settings.addCategory('Bookmark Settings');
         this.settings.addSeparator();
         this.settings.addCheckboxSetting('useBookmarkCache', 'Use Bookmark Cache', true);
+        this.settings.addTextInputSetting('bookmarkCacheTime', 'Bookmark Cache Time (hours)', '0.5', 'number');
 
         this.settings.addCategory('Shortcut Keys', '', false);
         this.settings.addSeparator();

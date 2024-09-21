@@ -197,7 +197,7 @@ class BookmarkManager {
         };
 
         const isSamePage = this.isSameFirstPage(result.data);
-        const isRecent = isCacheRecent(lastUpdate, toMilliseconds(0, 30, 0));
+        const isRecent = isCacheRecent(lastUpdate, toMilliseconds(this.settings.getSetting('bookmarkCacheTime'), 0, 0));
         const isSameLength = result.bm_quantily == JSON.parse(localStorage.getItem('bookmarks') || '[]').length;
 
         if (isSamePage && isRecent && isSameLength) {
