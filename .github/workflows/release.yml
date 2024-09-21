@@ -46,3 +46,4 @@ jobs:
           tag: ${{ env.TAG_NAME }}
           name: Release ${{ env.TAG_NAME }}
           body: "Automated release of the Chrome extension."
+          generateReleaseNotes: true

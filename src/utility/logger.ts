@@ -89,10 +89,6 @@ class Logger {
      * @param category - The category of the log message. Defaults to an empty string.
      * @param type - The type of the log message. Defaults to "info". Can be "info", "warn", "error", etc.
      * @param detailMessage - An optional detailed message to log.
-     *
-     * The log message is styled with CSS based on the type and category provided. If the type is "error",
-     * the message is logged using `console.error`. Otherwise, the message is logged using `console.groupCollapsed`,
-     * and the detailed message (if provided) is logged within the group. A stack trace is also included.
      */
     log(message: any, category: categoryType = "", type: LogType = "info", detailMessage: any = "") {
         if (type === "dev" && process.env.NODE_ENV === "production") {
