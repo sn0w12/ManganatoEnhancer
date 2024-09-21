@@ -318,7 +318,11 @@ class ChapterHandler {
         // Register shortcuts
         shortcutManager.registerShortcut(lastPageKeys, () => {
             const behavior = this.settings.getSetting("smoothScrolling") ? "smooth" : "auto";
-            this.navigationPanel.scrollIntoView({ behavior: behavior, block: "end" });
+            if (this.settings.getSetting('scrollToNav')) {
+                this.navigationPanel.scrollIntoView({ behavior: behavior, block: "end" });
+            } else {
+                this.scrollToImage(this.totalPages - 1, "end");
+            }
             findClosestImage();
         }, chapterCondition);
 
