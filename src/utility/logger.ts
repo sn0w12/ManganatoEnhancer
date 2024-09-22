@@ -161,6 +161,10 @@ class Logger {
     }
 
     private getLogText(text: string, maxLength: number = 10): string {
+        if (text.length <= maxLength) {
+            return text;
+        }
+
         const extractUppercase = (str: string) => {
             const matches = str.match(/[A-Z]/g);
             return matches ? matches.join('') : "";
