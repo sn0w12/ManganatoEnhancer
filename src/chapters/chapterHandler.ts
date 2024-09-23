@@ -27,12 +27,39 @@ class ChapterHandler {
     }
 
     public initialize() {
-        console.log("Chapter Handler initialized.");
         this.initializeImages();
+        this.adjustImageHeight();
         this.addMangaProgress();
         this.addNavigationBoxes();
         this.addMangaButtons();
         this.fixChapterStyles();
+    }
+
+    private adjustImageHeight() {
+        const images = document.querySelectorAll<HTMLImageElement>('.container-chapter-reader img');
+        let allImagesBelowThreshold = true;
+
+        const pageHeight = this.settings.getSetting("pageHeight");
+        const stripWidth = this.settings.getSetting("stripWidth");
+
+        images.forEach(img => {
+            let ratio = img.naturalHeight / img.naturalWidth;
+            if (ratio > 2.5) {
+                allImagesBelowThreshold = false;
+            }
+        });
+
+        const imageHeight = allImagesBelowThreshold ? pageHeight : stripWidth;
+        const imageOrientation = allImagesBelowThreshold ? "height" : "width";
+        images.forEach(img => {
+            img.style[imageOrientation as 'height' | 'width'] = imageHeight;
+            img.style.zIndex = '10';
+            img.style.position = 'relative';
+        });
+
+        if (imageOrientation === "width") {
+            this.isStrip = true;
+        }
     }
 
     private fixChapterStyles() {
